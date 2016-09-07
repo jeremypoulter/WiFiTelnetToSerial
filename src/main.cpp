@@ -1,9 +1,9 @@
-/* 
+/*
   WiFiTelnetToSerial - Example Transparent UART to Telnet Server for esp8266
 
   Copyright (c) 2015 Hristo Gochkov. All rights reserved.
   This file is part of the ESP8266WiFi library for Arduino environment.
- 
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -48,12 +48,12 @@ void setup() {
   Serial.begin(115200);
   server.begin();
   server.setNoDelay(true);
-  
+
   DEBUG.print("Ready! Use 'telnet ");
   DEBUG.print(WiFi.localIP());
   DEBUG.println(" 23' to connect");
 
-  
+
   // Set up mDNS responder:
   // - first argument is the domain name, in this example
   //   the fully-qualified domain name is "esp8266.local"
