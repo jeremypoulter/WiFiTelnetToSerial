@@ -26,6 +26,7 @@
 
 #include "debug.h"
 #include "serial.h"
+#include "esp_ota.h"
 
 #define HOSTNAME "espserial"
 
@@ -33,6 +34,7 @@ const char* ssid = "wibble";
 const char* password = "TheB1gJungle2";
 
 SerialTask serial;
+EspOtaTask espOta;
 
 void setup() {
   DEBUG.begin(115200);
@@ -61,7 +63,8 @@ void setup() {
     MDNS.addService("telnet", "tcp", 23);
   }
 
-  MicroTask.startTask(&serial);
+  MicroTask.startTask(espOta);
+  MicroTask.startTask(serial);
 }
 
 void loop() {
