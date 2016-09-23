@@ -8,8 +8,10 @@
 
 class EspOtaTask : public MicroTasks::Task
 {
+private:
+  const char *hostName;
 public:
-  EspOtaTask();
+  EspOtaTask(const char *hostName);
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);
 };

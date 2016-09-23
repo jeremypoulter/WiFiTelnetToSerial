@@ -34,7 +34,7 @@ const char* ssid = "wibble";
 const char* password = "TheB1gJungle2";
 
 SerialTask serial;
-EspOtaTask espOta;
+EspOtaTask espOta(HOSTNAME);
 
 void setup() {
   DEBUG.begin(115200);
@@ -52,16 +52,8 @@ void setup() {
   DEBUG.print(WiFi.localIP());
   DEBUG.println(" 23' to connect");
 
-  // Set up mDNS responder:
-  // - first argument is the domain name, in this example
-  //   the fully-qualified domain name is "esp8266.local"
-  // - second argument is the IP address to advertise
-  //   we send our IP address on the WiFi network
-  if (MDNS.begin(HOSTNAME)) {
-    DEBUG.println("mDNS responder started");
-    // Add service to MDNS-SD
-    MDNS.addService("telnet", "tcp", 23);
-  }
+  // Add service to MDNS-SD (mDNS started by ArduinoOTA)
+  MDNS.addService("telnet", "tcp", 23);
 
   MicroTask.startTask(espOta);
   MicroTask.startTask(serial);
