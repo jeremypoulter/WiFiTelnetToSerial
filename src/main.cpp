@@ -22,11 +22,12 @@
 #include <Arduino.h>
 
 #include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
+#include <FS.h>
 
 #include "debug.h"
 #include "serial.h"
 #include "esp_ota.h"
+#include "web_ui.h"
 
 #define HOSTNAME "espserial"
 
@@ -35,6 +36,7 @@ const char* password = "TheB1gJungle2";
 
 SerialTask serial;
 EspOtaTask espOta(HOSTNAME);
+WebUiTask webUi;
 
 void setup() {
   DEBUG.begin(115200);
@@ -48,15 +50,15 @@ void setup() {
     while(1) delay(500);
   }
 
-  DEBUG.print("Ready! Use 'telnet ");
-  DEBUG.print(WiFi.localIP());
-  DEBUG.println(" 23' to connect");
-
-  // Add service to MDNS-SD (mDNS started by ArduinoOTA)
-  MDNS.addService("telnet", "tcp", 23);
+  SPIFFS.begin();
 
   MicroTask.startTask(espOta);
   MicroTask.startTask(serial);
+  MicroTask.startTask(webUi);
+
+  DEBUG.print("Ready! Use 'telnet ");
+  DEBUG.print(WiFi.localIP());
+  DEBUG.println(" 23' to connect");
 }
 
 void loop() {

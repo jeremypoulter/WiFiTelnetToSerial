@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <ESP8266mDNS.h>
 
 #include "debug.h"
 #include "serial.h"
@@ -19,6 +20,9 @@ void SerialTask::setup()
 
   server.begin();
   server.setNoDelay(true);
+
+  // Add service to MDNS-SD (mDNS started by ArduinoOTA)
+  MDNS.addService("telnet", "tcp", 23);
 }
 
 unsigned long SerialTask::loop(WakeReason reason)
