@@ -28,7 +28,12 @@ void EspOtaTask::setup()
     Serial.println("\nEnd");
   });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    int percent = (progress / (total / 100));
+    static int lastProgress = 0;
+    if(percent != lastProgress) {
+      Serial.printf("Progress: %u%%\r", percent);
+      lastProgress = percent;
+    }
   });
   ArduinoOTA.onError([](ota_error_t error) {
     Serial.printf("Error[%u]: ", error);

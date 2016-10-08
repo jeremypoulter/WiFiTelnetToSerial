@@ -1,14 +1,3 @@
-jQuery(function($, undefined) {
-  $('#term').terminal(function(command, term) {
-    term.echo(command);
-  }, {
-    greetings: 'Javascript Interpreter',
-    name: 'js_demo',
-    height: 500,
-    prompt: 'js> '
-  });
-});
-
 function WiFiTelnetToSerialViewModel()
 {
     var self = this;
@@ -40,6 +29,27 @@ function WiFiTelnetToSerialViewModel()
         this.get('', function () {
             this.redirect('#terminal');
         });
+    });
+
+    var socket = new WebSocket("ws://"+window.location.hostname+"/ws");
+    socket.onopen = function (ev) {
+        console.log(ev);
+    };
+    socket.onclose = function (ev) {
+        console.log(ev);
+    };
+    socket.onmessage = function (msg) {
+        console.log(msg);
+        terminal.echo(msg.data.replace(/[\r\n]/g, ''));
+    };
+
+    var terminal = $('#term').terminal(function(command, term) {
+        socket.send(command);
+    }, {
+        greetings: 'ESP Serial',
+        name: 'espserial',
+        height: 500,
+        prompt: ''
     });
 
     sammy.run();

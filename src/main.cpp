@@ -36,17 +36,17 @@ const char* password = "TheB1gJungle2";
 
 SerialTask serial;
 EspOtaTask espOta(HOSTNAME);
-WebUiTask webUi;
+WebUiTask webUi(serial);
 
 void setup() {
-  DEBUG.begin(115200);
+  DEBUG_PORT.begin(115200);
 
   WiFi.begin(ssid, password);
-  DEBUG.print("\nConnecting to "); DEBUG.println(ssid);
+  DBUGF("\nConnecting to %s\n", ssid);
   uint8_t i = 0;
   while (WiFi.status() != WL_CONNECTED && i++ < 20) delay(500);
-  if(i == 21){
-    DEBUG.print("Could not connect to"); DEBUG.println(ssid);
+  if(i == 21) {
+    DBUGF("Could not connect to %s\n", ssid);
     while(1) delay(500);
   }
 
@@ -56,9 +56,9 @@ void setup() {
   MicroTask.startTask(serial);
   MicroTask.startTask(webUi);
 
-  DEBUG.print("Ready! Use 'telnet ");
-  DEBUG.print(WiFi.localIP());
-  DEBUG.println(" 23' to connect");
+  DBUG("Ready! Use 'telnet ");
+  DBUG(WiFi.localIP());
+  DBUGLN(" 23' to connect");
 }
 
 void loop() {
