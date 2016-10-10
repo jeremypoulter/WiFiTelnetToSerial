@@ -7,21 +7,20 @@
 #include <MicroTasks.h>
 #include <MicroTasksTask.h>
 
-//how many clients should be able to telnet to this ESP8266
-#define MAX_SRV_CLIENTS 5
+// The amount of data to buffer before forcing a read event
 #define SERIAL_BUFFER_SIZE 512
+
+// Max time to wait before sending a read event
 #define SERIAL_TIMEOUT 50
 
 typedef void (* onReadLineCallback)(uint8_t *sbuf, size_t len, bool binary, void *clientData);
 
+class SerialClient;
+
 class SerialTask : public MicroTasks::Task
 {
 private:
-  static WiFiServer server;
-  static WiFiClient serverClients[];
-
-  onReadLineCallback fnReadLineCallback;
-  void *pvReadLineData;
+  SerialClient *clients;
 
   uint8_t lineBuffer[SERIAL_BUFFER_SIZE];
   size_t bufferPos = 0;
@@ -33,6 +32,18 @@ public:
   unsigned long loop(MicroTasks::WakeReason reason);
 
   void onReadLine(onReadLineCallback callback, void *clientData);
+};
+
+class SerialClient
+{
+  friend SerialTask;
+private:
+  onReadLineCallback fnReadLineCallback;
+  void *pvReadLineData;
+public:
+  SerialClient *next;
+
+  SerialClient(onReadLineCallback callback, void *clientData);
 };
 
 #endif // __SERIAL_H

@@ -25,8 +25,9 @@
 #include <FS.h>
 
 #include "debug.h"
-#include "serial.h"
 #include "esp_ota.h"
+#include "serial.h"
+#include "telnet.h"
 #include "web_ui.h"
 
 #define HOSTNAME "espserial"
@@ -37,9 +38,10 @@ const char* password = "TheB1gJungle2";
 SerialTask serial;
 EspOtaTask espOta(HOSTNAME);
 WebUiTask webUi(serial);
+TelnetTask telnet(serial);
 
 void setup() {
-  DEBUG_PORT.begin(115200);
+  DEBUG_BEGIN(115200);
 
   WiFi.begin(ssid, password);
   DBUGF("\nConnecting to %s\n", ssid);
@@ -55,6 +57,7 @@ void setup() {
   MicroTask.startTask(espOta);
   MicroTask.startTask(serial);
   MicroTask.startTask(webUi);
+  MicroTask.startTask(telnet);
 
   DBUG("Ready! Use 'telnet ");
   DBUG(WiFi.localIP());

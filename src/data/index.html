@@ -36,6 +36,51 @@
 
       <div class="starter-template">
         Settings
+        <div id="one">
+            <h2>1. WiFi Network</h2>
+            <div class="itembody-wrapper">
+                <p><b>Mode:</b> <span id="mode"></span></p>
+                <div id="client-view">
+                    <!--<p><b>Network SSID:</b><br><span id="sta-ssid"></span></p>
+                        <p><b>Network RSSI:</b><br><span id="sta-rssi"></span></p> -->
+                    <table>
+                        <tr>
+                            <th>Network</th>
+                            <th>RSSI dBm</th>
+                        </tr>
+                        <tbody id="sta-ssid"></tbody>
+                    </table>
+                    <p><b>IP Address:</b><br>
+                    <span id="sta-ip"></span></p><button id="apoff" style=
+                    "display:none">Turn off Access Point</button>
+                </div>
+                <div id="ap-view" style="display:none">
+                    <p>Connect to network:</p>
+                    <table>
+                        <tr>
+                            <th>Select</th>
+                            <th>Network</th>
+                            <th>RSSI dBm</th>
+                        </tr>
+                        <tbody id="networks"></tbody>
+                    </table>
+                    <p><b>Passkey:</b><br>
+                    <input id="passkey" type="text"> <button id=
+                    "connect">Connect</button></p>
+                </div>
+                <div id="wait-view" style="display:none">
+                    <p>Connecting to WiFi Network...Please wait 10s</p>
+                </div>
+            </div>
+        </div>
+      </div>
+
+    </div><!-- /.container -->
+
+    <div class="container"  data-bind="visible: isAbout">
+
+      <div class="starter-template">
+        About
       </div>
 
     </div><!-- /.container -->
