@@ -1,6 +1,12 @@
 #include "telnet.h"
 #include "debug.h"
 
+#ifdef DEBUG
+# define TELCMDS
+# define TELOPTS
+#endif
+#include "arpa_telnet.h"
+
 TelnetClient::TelnetClient(TelnetTask* s, AsyncClient* c) :
   client(c),
   server(s),
@@ -51,8 +57,52 @@ void TelnetClient::onData(void *buf, size_t len)
 {
   DBUGF("TelnetClient::onData(%p, %d)", buf, len);
 
-  // TODO: Actually do telnet stuff, for now we will just write
-  Serial.write((char *)buf, len);
+  char *ptr = (char *)buf;
+  while(len > 0 && IAC == ptr[0])
+  {
+    ptr++; len--;
+    switch(ptr[0])
+    {
+      case DO:
+      case DONT:
+      case WILL:
+      case WONT:
+        DBUGF("Got IAC %s,%s", TELCMD(ptr[0]), TELOPT(ptr[1]));
+        ptr += 2; len -= 2;
+        break;
+      case SB:
+        DBUGF("Got IAC %s,%s", TELCMD(ptr[0]), TELOPT(ptr[1]));
+        while (len > 2 && IAC != ptr[0] && SE != ptr[1]) {
+          ptr++; len--;
+        }
+        break;
+      case SE:
+      case NOP:
+      case BREAK:
+      case AYT:
+      case DM:
+      case IP:
+      case AO:
+      case EC:
+      case EL:
+      case GA:
+        DBUGF("Got IAC %s", TELCMD(ptr[0]));
+        ptr++; len--;
+        break;
+      case IAC:
+        DBUGLN("IAC");
+        Serial.write(ptr, 1);
+        ptr++; len--;
+        break;
+      default:
+        DBUGF("Unknown code: %d", ptr[0]);
+        break;
+    }
+  }
+
+  if(len > 0) {
+    Serial.write(ptr, len);
+  }
 }
 
 size_t TelnetClient::write(const uint8_t *data, size_t len)
