@@ -35,10 +35,10 @@ void WebUiTask::setup()
 
   server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
     if(!index)
-      DBUGF("BodyStart: %u\n", total);
+      DBUGF("BodyStart: %u", total);
     DBUGF("%s", (const char*)data);
     if(index + len == total)
-      DBUGF("BodyEnd: %u\n", total);
+      DBUGF("BodyEnd: %u", total);
   });
 
   server.begin();
@@ -53,7 +53,7 @@ unsigned long WebUiTask::loop(MicroTasks::WakeReason reason)
 
 void WebUiTask::onNotFound(AsyncWebServerRequest *request)
 {
-  DBUGF("NOT_FOUND: ");
+  DBUG("NOT_FOUND: ");
   if(request->method() == HTTP_GET)
     DBUGF("GET");
   else if(request->method() == HTTP_POST)
@@ -70,29 +70,29 @@ void WebUiTask::onNotFound(AsyncWebServerRequest *request)
     DBUGF("OPTIONS");
   else
     DBUGF("UNKNOWN");
-  DBUGF(" http://%s%s\n", request->host().c_str(), request->url().c_str());
+  DBUGF(" http://%s%s", request->host().c_str(), request->url().c_str());
 
   if(request->contentLength()){
-    DBUGF("_CONTENT_TYPE: %s\n", request->contentType().c_str());
-    DBUGF("_CONTENT_LENGTH: %u\n", request->contentLength());
+    DBUGF("_CONTENT_TYPE: %s", request->contentType().c_str());
+    DBUGF("_CONTENT_LENGTH: %u", request->contentLength());
   }
 
   int headers = request->headers();
   int i;
   for(i=0;i<headers;i++){
     AsyncWebHeader* h = request->getHeader(i);
-    DBUGF("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
+    DBUGF("_HEADER[%s]: %s", h->name().c_str(), h->value().c_str());
   }
 
   int params = request->params();
   for(i=0;i<params;i++){
     AsyncWebParameter* p = request->getParam(i);
     if(p->isFile()){
-      DBUGF("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+      DBUGF("_FILE[%s]: %s, size: %u", p->name().c_str(), p->value().c_str(), p->size());
     } else if(p->isPost()){
-      DBUGF("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+      DBUGF("_POST[%s]: %s", p->name().c_str(), p->value().c_str());
     } else {
-      DBUGF("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
+      DBUGF("_GET[%s]: %s", p->name().c_str(), p->value().c_str());
     }
   }
 
@@ -101,15 +101,15 @@ void WebUiTask::onNotFound(AsyncWebServerRequest *request)
 
 void WebUiTask::onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
   if(type == WS_EVT_CONNECT){
-    DBUGF("ws[%s][%u] connect\n", server->url(), client->id());
+    DBUGF("ws[%s][%u] connect", server->url(), client->id());
     client->printf("Connected %u)", client->id());
     client->ping();
   } else if(type == WS_EVT_DISCONNECT){
-    DBUGF("ws[%s][%u] disconnect: %u\n", server->url(), client->id());
+    DBUGF("ws[%s][%u] disconnect: %u", server->url(), client->id());
   } else if(type == WS_EVT_ERROR){
-    DBUGF("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
+    DBUGF("ws[%s][%u] error(%u): %s", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
   } else if(type == WS_EVT_PONG){
-    DBUGF("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
+    DBUGF("ws[%s][%u] pong[%u]: %s", server->url(), client->id(), len, (len)?(char*)data:"");
   } else if(type == WS_EVT_DATA){
     AwsFrameInfo * info = (AwsFrameInfo*)arg;
     String msg = "";
@@ -139,8 +139,8 @@ void WebUiTask::onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client
       //message is comprised of multiple frames or the frame is split into multiple packets
       if(info->index == 0){
         if(info->num == 0)
-          DBUGF("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
-        DBUGF("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
+          DBUGF("ws[%s][%u] %s-message start", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+        DBUGF("ws[%s][%u] frame[%u] start[%llu]", server->url(), client->id(), info->num, info->len);
       }
 
       DBUGF("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
@@ -160,9 +160,9 @@ void WebUiTask::onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client
       Serial.print(msg.c_str());
 
       if((info->index + len) == info->len) {
-        DBUGF("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
+        DBUGF("ws[%s][%u] frame[%u] end[%llu]", server->url(), client->id(), info->num, info->len);
         if(info->final) {
-          DBUGF("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          DBUGF("ws[%s][%u] %s-message end", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
           if(info->message_opcode == WS_TEXT)
             client->text("I got your text message");
           else

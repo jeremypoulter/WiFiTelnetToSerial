@@ -35,8 +35,7 @@ void TelnetTask::onSerialReadLine(uint8_t *sbuf, size_t len, bool binary)
       client;
       client = client->next)
   {
-    AsyncClient *socket = client->GetClient();
-    socket->write((char *)sbuf, len);
+    client->write(sbuf, len);
   }
 }
 
@@ -69,7 +68,6 @@ void TelnetTask::onClient(AsyncClient* c)
   TelnetClient *client = new TelnetClient(this, c);
   if(client)
   {
-    c->setRxTimeout(3);
     client->next = clients;
     clients = client;
   }

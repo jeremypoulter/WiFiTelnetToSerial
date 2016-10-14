@@ -2,7 +2,7 @@
 #define __DEBUG_H
 
 #define DEBUG
-//#define DEBUG_PORT Serial
+#define DEBUG_PORT Serial
 
 #ifdef DEBUG
 
@@ -10,11 +10,11 @@
 #define DEBUG_PORT Serial1
 #endif
 
-#define DEBUG_BEGIN(speed) DEBUG_PORT.begin(speed)
+#define DEBUG_BEGIN(speed)  DEBUG_PORT.begin(speed)
 
-#define DBUGF(...)  DEBUG_PORT.printf(__VA_ARGS__)
-#define DBUG(...)   DEBUG_PORT.print(__VA_ARGS__)
-#define DBUGLN(...) DEBUG_PORT.println(__VA_ARGS__)
+#define DBUGF(format, ...)  DEBUG_PORT.printf(format "\n", ##__VA_ARGS__)
+#define DBUG(...)           DEBUG_PORT.print(__VA_ARGS__)
+#define DBUGLN(...)         DEBUG_PORT.println(__VA_ARGS__)
 
 #else
 

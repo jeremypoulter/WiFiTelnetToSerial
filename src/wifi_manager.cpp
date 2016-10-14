@@ -60,7 +60,7 @@ unsigned long WiFiManagerTask::loopAP()
 
   // Scan for the client SSID
   int n = WiFi.scanNetworks();
-  DBUGF("%d networks found\n",n);
+  DBUGF("%d networks found", n);
   for (int i = 0; i < n; ++i) {
     if(client_ssid == WiFi.SSID(i)) {
       startClient();
@@ -88,6 +88,7 @@ void WiFiManagerTask::startClient()
 unsigned long WiFiManagerTask::loopClient()
 {
   if(WL_CONNECTED == WiFi.status()) {
+    DBUGLN("Connected");
     // We are connected nothing to do...
     return MicroTask.Infinate;
   }
@@ -97,7 +98,7 @@ unsigned long WiFiManagerTask::loopClient()
     startAP();
   }
 
-  return timeout - millis();
+  return 500;
 }
 
 void WiFiManagerTask::stopClient()

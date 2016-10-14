@@ -38,6 +38,7 @@ private:
   AsyncClient *client;
   TelnetTask *server;
   TelnetClient *next;
+  volatile size_t toSend;
 
   void onPoll();
   void onAck(size_t len, uint32_t time);
@@ -52,6 +53,8 @@ public:
   AsyncClient *GetClient() {
     return client;
   }
+
+  size_t write(const uint8_t *data, size_t len);
 };
 
 #endif // __TELNET_H
