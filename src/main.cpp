@@ -29,39 +29,30 @@
 #include "serial.h"
 #include "telnet.h"
 #include "web_ui.h"
+#include "wifi_manager.h"
 
+#ifndef HOSTNAME
 #define HOSTNAME "espserial"
+#endif
 
-const char* ssid = "wibble";
+const char* ssid = "BigJungle_Travel";
 const char* password = "TheB1gJungle2";
 
 SerialTask serial;
 EspOtaTask espOta(HOSTNAME);
 WebUiTask webUi(serial);
 TelnetTask telnet(serial);
+WiFiManagerTask wifi(HOSTNAME, ssid, password);
 
 void setup() {
   DEBUG_BEGIN(115200);
-
-  WiFi.begin(ssid, password);
-  DBUGF("\nConnecting to %s\n", ssid);
-  uint8_t i = 0;
-  while (WiFi.status() != WL_CONNECTED && i++ < 20) delay(500);
-  if(i == 21) {
-    DBUGF("Could not connect to %s\n", ssid);
-    while(1) delay(500);
-  }
-
   SPIFFS.begin();
 
   MicroTask.startTask(espOta);
   MicroTask.startTask(serial);
   MicroTask.startTask(webUi);
   MicroTask.startTask(telnet);
-
-  DBUG("Ready! Use 'telnet ");
-  DBUG(WiFi.localIP());
-  DBUGLN(" 23' to connect");
+  MicroTask.startTask(wifi);
 }
 
 void loop() {
