@@ -31,3 +31,4 @@
 *.su
 .vs/
 .piolibdeps
+.vscode/
