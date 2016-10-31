@@ -8,6 +8,9 @@
 #include "debug.h"
 #include "web_ui.h"
 
+#define TEXTIFY(A) #A
+#define ESCAPEQUOTE(A) TEXTIFY(A)
+
 WebUiTask::WebUiTask(SerialTask &serial) :
   server(80),
   ws("/ws"),
@@ -27,19 +30,43 @@ void WebUiTask::setup()
   ws.onEvent(onWsEvent);
   server.addHandler(&ws);
 
-  server.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(200, "text/plain", String(ESP.getFreeHeap()));
   });
 
+  server.on("/version", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/plain", ESCAPEQUOTE(VERSION));
+  });
+
+  server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/json", "{'msg':'todo'}");
+  } );
+
+  server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/json", "{'msg':'todo'}");
+  } );
+
+  server.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/json", "{'msg':'todo'}");
+  } );
+
+  server.on("/wifi", HTTP_POST, [](AsyncWebServerRequest *request) { 
+    request->send(200, "text/json", "{'msg':'todo'}");
+  } );
+
   server.onNotFound(onNotFound);
 
+#ifdef DEBUG
   server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-    if(!index)
+    if(!index) {
       DBUGF("BodyStart: %u", total);
+    }
     DBUGF("%s", (const char*)data);
-    if(index + len == total)
+    if(index + len == total) {
       DBUGF("BodyEnd: %u", total);
+    }
   });
+#endif
 
   server.begin();
 

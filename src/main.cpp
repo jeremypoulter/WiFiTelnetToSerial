@@ -35,7 +35,7 @@
 #define HOSTNAME "espserial"
 #endif
 
-const char* ssid = "BigJungle_Travel";
+const char* ssid = "wibble";
 const char* password = "TheB1gJungle2";
 
 SerialTask serial;

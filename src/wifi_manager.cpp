@@ -42,7 +42,7 @@ void WiFiManagerTask::startAP()
 
   // Start up the AP
   WiFi.softAPConfig(apIP, apIP, netMask);
-  WiFi.softAP(softAP_ssid.c_str(), client_password.c_str());
+  WiFi.softAP(softAP_ssid.c_str(), softAP_password.c_str());
 
   // Setup the DNS server redirecting all the domains to the apIP
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);

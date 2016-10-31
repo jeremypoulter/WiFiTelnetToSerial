@@ -16,65 +16,153 @@
   </head>
   <body>
 
-    <nav class="navbar navbar-fixed-top navbar-dark bg-inverse">
-      <a class="navbar-brand" href="#">WiFi Telnet</a>
-      <ul class="nav navbar-nav">
-        <li class="nav-item" data-bind="css: { active: isTerminal }">
-          <a class="nav-link" href="#terminal">Terminal <span class="sr-only">(current)</span></a>
-        </li>
-        <li class="nav-item" data-bind="css: { active: isSettings }">
-          <a class="nav-link" href="#settings">Settings</a>
-        </li>
-        <li class="nav-item" data-bind="css: { active: isAbout }">
-          <a class="nav-link" href="#about">About</a>
-        </li>
-      </ul>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">WiFi Telnet</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li data-bind="css: { active: isTerminal }">
+              <a href="#terminal">Terminal <span class="sr-only">(current)</span></a>
+            </li>
+            <li data-bind="css: { active: isSettings }">
+              <a href="#settings">Settings</a>
+            </li>
+            <li data-bind="css: { active: isAbout }">
+              <a href="#about">About</a>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
     </nav>
 
     <div class="container" data-bind="visible: isTerminal">
+      <h1>Terminal</h1>
       <div id="term"></div>
     </div><!-- /.container -->
 
     <div class="container"  data-bind="visible: isSettings">
 
-      <div class="starter-template">
-        Settings
-        <div id="one">
-            <h2>1. WiFi Network</h2>
-            <div class="itembody-wrapper">
-                <p><b>Mode:</b> <span id="mode"></span></p>
-                <div id="client-view">
-                    <!--<p><b>Network SSID:</b><br><span id="sta-ssid"></span></p>
-                        <p><b>Network RSSI:</b><br><span id="sta-rssi"></span></p> -->
-                    <table>
-                        <tr>
-                            <th>Network</th>
-                            <th>RSSI dBm</th>
-                        </tr>
-                        <tbody id="sta-ssid"></tbody>
-                    </table>
-                    <p><b>IP Address:</b><br>
-                    <span id="sta-ip"></span></p><button id="apoff" style=
-                    "display:none">Turn off Access Point</button>
-                </div>
-                <div id="ap-view" style="display:none">
-                    <p>Connect to network:</p>
-                    <table>
-                        <tr>
-                            <th>Select</th>
-                            <th>Network</th>
-                            <th>RSSI dBm</th>
-                        </tr>
-                        <tbody id="networks"></tbody>
-                    </table>
-                    <p><b>Passkey:</b><br>
-                    <input id="passkey" type="text"> <button id=
-                    "connect">Connect</button></p>
-                </div>
-                <div id="wait-view" style="display:none">
-                    <p>Connecting to WiFi Network...Please wait 10s</p>
-                </div>
+      <div>
+        <h1>Settings</h1>
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">WiFi</h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                  <table class="table table-hover">
+                      <tr>
+                          <th>Network</th>
+                          <th>RSSI dBm</th>
+                      </tr>
+                      <tbody id="sta-ssid"></tbody>
+                  </table>
+              </div>
+              <div class="col-md-6">
+
+                <table class="table">
+                  <tbody>
+                    <tr>
+                      <th>Status:</th>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <th>IP Address:</th>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <th>Netmask:</th>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <th>Gateway:</th>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
+
+            <form class="form-horizontal">
+              <div class="form-group">
+                <label for="clientSsid" class="col-sm-2 control-label">SSID</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="clientSsid" placeholder="SSID">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="clientPassword" class="col-sm-2 control-label">Password</label>
+                <div class="col-sm-10">
+                  <input type="password" class="form-control" id="clientPassword" placeholder="Password">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-default">Connect</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Serial</h3>
+        </div>
+        <div class="panel-body">
+          <form class="form-horizontal">
+            <div class="form-group">
+              <label for="serialBaud" class="col-sm-2 control-label">Baud</label>
+              <div class="col-sm-10">
+                <select class="form-control" id="serialBaud">
+                  <option>300</option>
+                  <option>600</option>
+                  <option>1200</option>
+                  <option>2400</option>
+                  <option>4800</option>
+                  <option>9600</option>
+                  <option>14400</option>
+                  <option>19200</option>
+                  <option>28800</option>
+                  <option>38400</option>
+                  <option>57600</option>
+                  <option>115200</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="serialBits" class="col-sm-2 control-label"></label>
+              <div class="col-sm-3">
+                <select class="form-control" id="serialBits">
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                </select>
+              </div>
+              <div class="col-sm-4">
+                <select class="form-control" id="serialParity">
+                  <option>N</option>
+                  <option>O</option>
+                  <option>E</option>
+                </select>
+              </div>
+              <div class="col-sm-3">
+                <select class="form-control" id="serialStop">
+                  <option>1</option>
+                  <option>2</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-default">Set</button>
+          </form>
         </div>
       </div>
 
@@ -82,8 +170,30 @@
 
     <div class="container"  data-bind="visible: isAbout">
 
-      <div class="starter-template">
-        About
+      <div>
+        <h1>About</h1>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">System</h3>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-2 align-right"><b>Version:</b></div>
+            <div class="col-md-10"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-2 align-right"><b>Free RAM:</b></div>
+            <div class="col-md-10"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-12 align-right">
+              <button class="btn btn-info">Reboot</button>
+              <button class="btn btn-info">Factory Reset</button>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div><!-- /.container -->
