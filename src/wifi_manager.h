@@ -25,6 +25,9 @@ private:
   bool client;
   long timeout;
 
+  // WiFi connection LED state
+  int wifiLedState;
+
   void startAP();
   unsigned long loopAP();
   void stopAP();

@@ -6,6 +6,9 @@
 
 #define DNS_PORT 53
 
+#define WIFI_CONNECTION_LED       0
+#define WIFI_CONNECTION_LED_STATE LOW
+
 WiFiManagerTask::WiFiManagerTask(String hostname, String ssid, String password) :
   dnsServer(),
   softAP_ssid(hostname+"_"+String(ESP.getChipId())),
@@ -17,12 +20,16 @@ WiFiManagerTask::WiFiManagerTask(String hostname, String ssid, String password) 
   hostname(hostname),
   client(false),
   timeout(millis()),
+  wifiLedState(!WIFI_CONNECTION_LED_STATE),
   MicroTasks::Task()
 {
 }
 
 void WiFiManagerTask::setup()
 {
+  pinMode(WIFI_CONNECTION_LED, OUTPUT);
+  digitalWrite(WIFI_CONNECTION_LED, wifiLedState);
+
   if(client_ssid != "") {
     startClient();
   } else {
@@ -53,12 +60,16 @@ void WiFiManagerTask::startAP()
 
 unsigned long WiFiManagerTask::loopAP()
 {
+  wifiLedState = !WIFI_CONNECTION_LED_STATE;
+  digitalWrite(WIFI_CONNECTION_LED, wifiLedState);
+
   if(client_ssid == "") {
     // No client SSID set, nothing to do...
     return MicroTask.Infinate;
   }
 
   // Scan for the client SSID
+  digitalWrite(WIFI_CONNECTION_LED, WIFI_CONNECTION_LED_STATE);
   int n = WiFi.scanNetworks();
   DBUGF("%d networks found", n);
   for (int i = 0; i < n; ++i) {
@@ -67,6 +78,7 @@ unsigned long WiFiManagerTask::loopAP()
       return 0;
     }
   }
+  digitalWrite(WIFI_CONNECTION_LED, !WIFI_CONNECTION_LED_STATE);
 
   return 10 * 1000;
 }
@@ -88,10 +100,16 @@ void WiFiManagerTask::startClient()
 unsigned long WiFiManagerTask::loopClient()
 {
   if(WL_CONNECTED == WiFi.status()) {
+    wifiLedState = WIFI_CONNECTION_LED_STATE;
+    digitalWrite(WIFI_CONNECTION_LED, wifiLedState);
+
     DBUGLN("Connected");
     // We are connected nothing to do...
-    return MicroTask.Infinate;
+    return 1000;
   }
+
+  wifiLedState = !wifiLedState;
+  digitalWrite(WIFI_CONNECTION_LED, wifiLedState);
 
   if(millis() > timeout) {
     // timeout connecting to AP
