@@ -38,11 +38,14 @@
 const char* ssid = "wibble";
 const char* password = "TheB1gJungle2";
 
+//const char* ssid = "MRLNET";
+//const char* password = "sch1tzandra";
+
 SerialTask serial;
 EspOtaTask espOta(HOSTNAME);
-WebUiTask webUi(serial);
 TelnetTask telnet(serial);
 WiFiManagerTask wifi(HOSTNAME, ssid, password);
+WebUiTask webUi(serial, wifi);
 
 void setup() {
   DEBUG_BEGIN(115200);

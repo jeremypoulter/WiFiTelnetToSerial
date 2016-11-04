@@ -5,22 +5,32 @@
 #include <ESPAsyncWebServer.h>
 #include <MicroTasks.h>
 #include <MicroTasksTask.h>
+#include <MicroTasksEventListener.h>
 
 #include "serial.h"
+#include "wifi_manager.h"
 
+class WebUiTask;
 class WebUiTask : public MicroTasks::Task
 {
 private:
+  static WebUiTask *self;
+
   AsyncWebServer server;
   AsyncWebSocket ws;
+  MicroTasks::EventListener scanCompleteEvent;
   SerialTask &serial;
+  WiFiManagerTask &wifi;
+
+  AsyncWebServerRequest *scanRequest;
 
   static void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
   static void onNotFound(AsyncWebServerRequest *request);
-  static void onSerialReadLine(uint8_t *sbuf, size_t len, bool binary, void *pvData);
+
+  void onSerialReadLine(uint8_t *sbuf, size_t len, bool binary);
 
 public:
-  WebUiTask(SerialTask &serial);
+  WebUiTask(SerialTask &serial, WiFiManagerTask &wifi);
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);
 };

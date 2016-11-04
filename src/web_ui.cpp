@@ -4,19 +4,29 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <ESP8266mDNS.h>
+#include <ESP8266WiFi.h>
+#include <ArduinoJson.h>
 
 #include "debug.h"
 #include "web_ui.h"
 
+
 #define TEXTIFY(A) #A
 #define ESCAPEQUOTE(A) TEXTIFY(A)
 
-WebUiTask::WebUiTask(SerialTask &serial) :
+WebUiTask *WebUiTask::self = NULL;
+
+WebUiTask::WebUiTask(SerialTask &serial, WiFiManagerTask &wifi) :
   server(80),
   ws("/ws"),
+  scanCompleteEvent(this),
   serial(serial),
+  wifi(wifi),
   MicroTasks::Task()
 {
+  wifi.onScanComplete(scanCompleteEvent);
+
+  self = this;
 }
 
 void WebUiTask::setup()
@@ -30,29 +40,72 @@ void WebUiTask::setup()
   ws.onEvent(onWsEvent);
   server.addHandler(&ws);
 
-  server.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/plain", String(ESP.getFreeHeap()));
-  });
+  server.on("/info", HTTP_GET, [](AsyncWebServerRequest *request) {
+    DynamicJsonBuffer jsonBuffer;
 
-  server.on("/version", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/plain", ESCAPEQUOTE(VERSION));
+    JsonObject& root = jsonBuffer.createObject();
+    root["id"] = ESP.getChipId();
+    root["heap"] = ESP.getFreeHeap();
+    root["version"] = ESCAPEQUOTE(VERSION);
+
+    String response;
+    root.printTo(response);
+    request->send(200, "text/json", response);
   });
 
   server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/json", "{'msg':'todo'}");
-  } );
+    DynamicJsonBuffer jsonBuffer;
+
+    JsonObject& root = jsonBuffer.createObject();
+
+
+    String response;
+    root.printTo(response);
+    request->send(200, "text/json", response);
+  });
 
   server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *request) {
     request->send(200, "text/json", "{'msg':'todo'}");
-  } );
+  });
+
+  server.on("/wifi/scan", HTTP_GET, [](AsyncWebServerRequest *request)
+  {
+    if(NULL == self->scanRequest)
+    {
+      DBUGF("Start WiFi scan");
+      self->scanRequest = request;
+      self->wifi.StartScan();
+    }
+    else
+    {
+      request->send(400, "text/json", "{\"msg\":\"Busy\"}");
+    }
+  });
 
   server.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/json", "{'msg':'todo'}");
-  } );
+    DynamicJsonBuffer jsonBuffer;
 
-  server.on("/wifi", HTTP_POST, [](AsyncWebServerRequest *request) { 
+    JsonObject& root = jsonBuffer.createObject();
+
+    root["mac"] = WiFi.macAddress();
+    root["localIP"] = WiFi.localIP().toString();
+    root["subnetMask"] = WiFi.subnetMask().toString();
+    root["gatewayIP"] = WiFi.gatewayIP().toString();
+    root["dnsIP"] = WiFi.dnsIP().toString();
+    root["status"] = (int)WiFi.status();
+    root["hostname"] = WiFi.hostname();
+    root["SSID"] = WiFi.SSID();
+    root["BSSID"] = WiFi.BSSIDstr();
+    root["RSSI"] = WiFi.RSSI();
+
+    String response;
+    root.printTo(response);
+    request->send(200, "text/json", response);
+  });
+
+  server.on("/wifi", HTTP_POST, [](AsyncWebServerRequest *request) {
     request->send(200, "text/json", "{'msg':'todo'}");
-  } );
+  });
 
   server.onNotFound(onNotFound);
 
@@ -70,11 +123,43 @@ void WebUiTask::setup()
 
   server.begin();
 
-  serial.onReadLine(onSerialReadLine, this);
+  serial.onReadLine([](uint8_t *sbuf, size_t len, bool binary, void *data) { WebUiTask *self = (WebUiTask *)data; self->onSerialReadLine(sbuf, len, binary); }, this);
 }
 
 unsigned long WebUiTask::loop(MicroTasks::WakeReason reason)
 {
+  if(WakeReason_Event == reason)
+  {
+    int n = WiFi.scanComplete();
+    if(NULL != WebUiTask::scanRequest && n != WIFI_SCAN_RUNNING)
+    {
+      DBUGF("WiFi scan complete");
+
+      DynamicJsonBuffer jsonBuffer;
+
+      JsonArray& root = jsonBuffer.createArray();
+      DBUGF("%d networks found", n);
+      for (int i = 0; i < n; ++i)
+      {
+        JsonObject& ssid = jsonBuffer.createObject();
+        ssid["ssid"] = WiFi.SSID(i);
+        int enc = WiFi.encryptionType(i);
+        ssid["encryptionType"] = ENC_TYPE_WEP == enc ? "ENC_TYPE_WEP" :
+                                 ENC_TYPE_TKIP == enc ? "ENC_TYPE_TKIP" :
+                                 ENC_TYPE_CCMP == enc ? "ENC_TYPE_CCMP" :
+                                 ENC_TYPE_NONE == enc ? "ENC_TYPE_NONE" :
+                                 ENC_TYPE_AUTO == enc ? "ENC_TYPE_AUTO" :
+                                 "UNKNOWN";
+        ssid["rssi"] = WiFi.RSSI(i);
+        root.add(ssid);
+      }
+
+      String response;
+      root.printTo(response);
+      WebUiTask::scanRequest->send(200, "text/json", response);
+      WebUiTask::scanRequest = NULL;
+    }
+  }
   return MicroTask.Infinate;
 }
 
@@ -200,12 +285,11 @@ void WebUiTask::onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client
   }
 }
 
-void WebUiTask::onSerialReadLine(uint8_t *sbuf, size_t len, bool binary, void *pvData)
+void WebUiTask::onSerialReadLine(uint8_t *sbuf, size_t len, bool binary)
 {
-  WebUiTask *self = (WebUiTask *)pvData;
   if(binary) {
-    self->ws.binaryAll(sbuf, len);
+    ws.binaryAll(sbuf, len);
   } else {
-    self->ws.textAll(sbuf, len);
+    ws.textAll(sbuf, len);
   }
 }

@@ -3,12 +3,25 @@
 
 #include <MicroTasks.h>
 #include <MicroTasksTask.h>
+#include <MicroTasksEvent.h>
+#include <MicroTasksEventListener.h>
 #include <DNSServer.h>                // Required for captive portal
+
+typedef void (* WiFiScanComplete)(int numberNetworks, void *pvData);
+
+class WiFiScanCompleteEvent : public MicroTasks::Event
+{
+public:
+  void ScanComplete() {
+    Trigger();
+  }
+};
 
 class WiFiManagerTask : public MicroTasks::Task
 {
 private:
-  DNSServer dnsServer;                  // Create class DNS server, captive portal re-direct
+  DNSServer dnsServer;                      // Create class DNS server, captive portal re-direct
+  WiFiScanCompleteEvent scanCompleteEvent;  //
 
   // Access Point SSID, password & IP address. SSID will be softAP_ssid + chipID to make SSID unique
   String softAP_ssid;
@@ -24,6 +37,10 @@ private:
   // Are we in client mode or AP
   bool client;
   long timeout;
+  bool scan;
+
+  // WiFi connection state cache
+  int wifiState;
 
   // WiFi connection LED state
   int wifiLedState;
@@ -39,6 +56,9 @@ public:
   WiFiManagerTask(String hostname, String ssid, String password);
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);
+
+  void StartScan();
+  void onScanComplete(MicroTasks::EventListener& eventListener);
 };
 
 #endif //  __WIFI_MANAGER_H

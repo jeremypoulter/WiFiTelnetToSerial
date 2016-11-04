@@ -11,6 +11,7 @@
 
 WiFiManagerTask::WiFiManagerTask(String hostname, String ssid, String password) :
   dnsServer(),
+  scanCompleteEvent(),
   softAP_ssid(hostname+"_"+String(ESP.getChipId())),
   softAP_password(""),
   apIP(192, 168, 4, 1),
@@ -20,6 +21,8 @@ WiFiManagerTask::WiFiManagerTask(String hostname, String ssid, String password) 
   hostname(hostname),
   client(false),
   timeout(millis()),
+  scan(false),
+  wifiState(-1),
   wifiLedState(!WIFI_CONNECTION_LED_STATE),
   MicroTasks::Task()
 {
@@ -99,15 +102,33 @@ void WiFiManagerTask::startClient()
 
 unsigned long WiFiManagerTask::loopClient()
 {
-  if(WL_CONNECTED == WiFi.status()) {
-    wifiLedState = WIFI_CONNECTION_LED_STATE;
-    digitalWrite(WIFI_CONNECTION_LED, wifiLedState);
+  if(scan)
+  {
+    int n = WiFi.scanComplete();
+    if(WIFI_SCAN_RUNNING != n)
+    {
+      DBUGF("Complete, found %d", n);
+      scanCompleteEvent.ScanComplete();
+      scan = false;
+    } else {
+      DBUGF("Scanning... (%d)", n);
+    }
+  }
 
-    DBUGLN("Connected");
+  if(WL_CONNECTED == WiFi.status())
+  {
+    if(wifiState != WL_CONNECTED) {
+      DBUGLN("Connected");
+      wifiLedState = WIFI_CONNECTION_LED_STATE;
+      digitalWrite(WIFI_CONNECTION_LED, wifiLedState);
+      wifiState = WL_CONNECTED;
+    }
+
     // We are connected nothing to do...
     return 1000;
   }
 
+  wifiState = WiFi.status();
   wifiLedState = !wifiLedState;
   digitalWrite(WIFI_CONNECTION_LED, wifiLedState);
 
@@ -121,4 +142,16 @@ unsigned long WiFiManagerTask::loopClient()
 
 void WiFiManagerTask::stopClient()
 {
+}
+
+void WiFiManagerTask::StartScan()
+{
+  WiFi.scanNetworks(true);
+  scan = true;
+  DBUGF("Start scan");
+}
+
+void WiFiManagerTask::onScanComplete(MicroTasks::EventListener& eventListener)
+{
+  scanCompleteEvent.Register(&eventListener);
 }
