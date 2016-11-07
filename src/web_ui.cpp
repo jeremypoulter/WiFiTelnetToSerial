@@ -53,18 +53,26 @@ void WebUiTask::setup()
     request->send(200, "text/json", response);
   });
 
-  server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/serial", HTTP_GET, [](AsyncWebServerRequest *request) {
     DynamicJsonBuffer jsonBuffer;
 
     JsonObject& root = jsonBuffer.createObject();
 
+    root["baud"] = self->serial.getBaud();
+    root["dataBits"] = self->serial.getDataBits();
+    SerialParity parity = self->serial.getParity();
+    root["parity"] = SerialParity_None == parity ? "N" :
+                     SerialParity_Odd == parity ? "O" :
+                     SerialParity_Even == parity ? "E" :
+                     "UNKNOWN";
+    root["stopBits"] = self->serial.getStopBits();
 
     String response;
     root.printTo(response);
     request->send(200, "text/json", response);
   });
 
-  server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *request) {
+  server.on("/serial", HTTP_POST, [](AsyncWebServerRequest *request) {
     request->send(200, "text/json", "{'msg':'todo'}");
   });
 
@@ -92,7 +100,16 @@ void WebUiTask::setup()
     root["subnetMask"] = WiFi.subnetMask().toString();
     root["gatewayIP"] = WiFi.gatewayIP().toString();
     root["dnsIP"] = WiFi.dnsIP().toString();
-    root["status"] = (int)WiFi.status();
+    wl_status_t status = WiFi.status();
+    root["status"] = WL_NO_SHIELD == status ? "WL_NO_SHIELD" :
+                     WL_IDLE_STATUS == status ? "WL_IDLE_STATUS" :
+                     WL_NO_SSID_AVAIL == status ? "WL_NO_SSID_AVAIL" :
+                     WL_SCAN_COMPLETED == status ? "WL_SCAN_COMPLETED" :
+                     WL_CONNECTED == status ? "WL_CONNECTED" :
+                     WL_CONNECT_FAILED == status ? "WL_CONNECT_FAILED" :
+                     WL_CONNECTION_LOST == status ? "WL_CONNECTION_LOST" :
+                     WL_DISCONNECTED == status ? "WL_DISCONNECTED" :
+                     "UNKNOWN";
     root["hostname"] = WiFi.hostname();
     root["SSID"] = WiFi.SSID();
     root["BSSID"] = WiFi.BSSIDstr();

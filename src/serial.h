@@ -15,6 +15,13 @@
 
 typedef void (* onReadLineCallback)(uint8_t *sbuf, size_t len, bool binary, void *clientData);
 
+typedef enum {
+  SerialParity_Odd,
+  SerialParity_Even,
+  SerialParity_None,
+  SerialParity_MAX
+} SerialParity;
+
 class SerialClient;
 
 class SerialTask : public MicroTasks::Task
@@ -26,12 +33,25 @@ private:
   size_t bufferPos = 0;
   long bufferReadTimeout;
   bool bufferIsBinary;
+
+  unsigned long baud;
+  SerialConfig config;
 public:
   SerialTask();
+  SerialTask(unsigned long baud);
+  SerialTask(unsigned long baud, SerialConfig config);
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);
 
   void onReadLine(onReadLineCallback callback, void *clientData);
+
+  unsigned long getBaud() {
+    return baud;
+  }
+
+  int getDataBits();
+  SerialParity getParity();
+  int getStopBits();
 };
 
 class SerialClient

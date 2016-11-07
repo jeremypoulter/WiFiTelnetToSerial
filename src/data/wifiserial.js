@@ -1,3 +1,104 @@
+function WiFiViewModel()
+{
+    var self = this;
+
+    ko.mapping.fromJS({
+        'mac': '00:00:00:00:00:00',
+        'localIP': '0.0.0.0',
+        'subnetMask': '255.255.255.0',
+        'gatewayIP': '0.0.0.0',
+        'dnsIP': '0.0.0.0',
+        'status': 0,
+        'hostname': 'espserial',
+        'SSID': 'ssid',
+        'BSSID': '00:00:00:00:00:00',
+        'RSSI': 0
+    }, {}, self);
+
+    self.fetching = ko.observable(false);
+    self.scan = ko.observable(new WiFiScanViewModel());
+
+    self.update = function () {
+        self.scan().update();
+        self.fetching(true);
+        $.get('/wifi', function (data) {
+            ko.mapping.fromJS(data, self);
+        }, 'json').always(function () {
+            self.fetching(false);
+        });
+    };
+}
+
+function WiFiScanResultViewModel(data)
+{
+    var self = this;
+    ko.mapping.fromJS(data, {}, self);
+}
+
+function WiFiScanViewModel()
+{
+    var self = this;
+
+    self.results = ko.mapping.fromJS([], {
+        key: function(data) {
+            return ko.utils.unwrapObservable(data.ssid);
+        },
+        create: function (options) {
+            return new WiFiScanResultViewModel(options.data);
+        }
+    });
+
+    self.fetching = ko.observable(false);
+
+    self.update = function () {
+        self.fetching(true);
+        $.get('/wifi/scan', function (data) {
+            ko.mapping.fromJS(data, self.results);
+        }, 'json').always(function () {
+            self.fetching(false);
+        });
+    };
+}
+
+function SerialViewModel()
+{
+    var self = this;
+
+    ko.mapping.fromJS({
+        'baud': 115200,
+        'dataBits': 8,
+        'parity': 'N',
+        'stopBits': 1
+    }, {}, self);
+
+    self.fetching = ko.observable(false);
+
+    self.update = function () {
+        self.fetching(true);
+        $.get('/serial', function (data) {
+            ko.mapping.fromJS(data, self);
+        }, 'json').always(function () {
+            self.fetching(false);
+        });
+    };
+}
+
+function SettingsViewModel(app)
+{
+  var self = this;
+
+  self.wifi = ko.observable(new WiFiViewModel());
+  self.serial = ko.observable(new SerialViewModel());
+
+  app.isSettings.subscribe(function (selected) {
+      if (selected) {
+          self.wifi().update();
+          self.serial().update();
+      }
+  });
+
+}
+
 function WiFiTelnetToSerialViewModel()
 {
     var self = this;
@@ -19,6 +120,9 @@ function WiFiTelnetToSerialViewModel()
     // Behaviours
     self.goToTab = function (tab) { location.hash = tab; };
 
+    // Settings
+    self.settings = ko.observable(new SettingsViewModel(self));
+
     // Client-side routes
     var sammy = Sammy(function ()
     {
@@ -31,7 +135,7 @@ function WiFiTelnetToSerialViewModel()
         });
     });
 
-    var socket = new WebSocket("ws://"+window.location.hostname+"/ws");
+    var socket = new WebSocket('ws://'+window.location.hostname+'/ws');
     socket.onopen = function (ev) {
         console.log(ev);
     };

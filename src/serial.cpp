@@ -10,6 +10,28 @@ SerialTask::SerialTask() :
   bufferPos(0),
   bufferIsBinary(false),
   bufferReadTimeout(millis()),
+  baud(115200),
+  config(SERIAL_8N1),
+  Task()
+{
+}
+
+SerialTask::SerialTask(unsigned long baud) :
+  bufferPos(0),
+  bufferIsBinary(false),
+  bufferReadTimeout(millis()),
+  baud(baud),
+  config(SERIAL_8N1),
+  Task()
+{
+}
+
+SerialTask::SerialTask(unsigned long baud, SerialConfig config) :
+  bufferPos(0),
+  bufferIsBinary(false),
+  bufferReadTimeout(millis()),
+  baud(baud),
+  config(config),
   Task()
 {
 }
@@ -17,7 +39,7 @@ SerialTask::SerialTask() :
 void SerialTask::setup()
 {
   //start UART and the server
-  Serial.begin(115200);
+  Serial.begin(baud, config);
 }
 
 unsigned long SerialTask::loop(WakeReason reason)
@@ -82,6 +104,120 @@ void SerialTask::onReadLine(onReadLineCallback callback, void *clientData)
     client->next = clients;
     clients = client;
   }
+}
+
+int SerialTask::getDataBits()
+{
+  switch(config)
+  {
+    case SERIAL_5N1:
+    case SERIAL_5N2:
+    case SERIAL_5E1:
+    case SERIAL_5E2:
+    case SERIAL_5O1:
+    case SERIAL_5O2:
+      return 5;
+
+    case SERIAL_6N1:
+    case SERIAL_6N2:
+    case SERIAL_6E1:
+    case SERIAL_6E2:
+    case SERIAL_6O1:
+    case SERIAL_6O2:
+      return 6;
+
+    case SERIAL_7N1:
+    case SERIAL_7N2:
+    case SERIAL_7E1:
+    case SERIAL_7E2:
+    case SERIAL_7O1:
+    case SERIAL_7O2:
+      return 7;
+
+    case SERIAL_8N1:
+    case SERIAL_8N2:
+    case SERIAL_8E1:
+    case SERIAL_8E2:
+    case SERIAL_8O1:
+    case SERIAL_8O2:
+      return 8;
+  }
+
+  return -1;
+}
+
+SerialParity SerialTask::getParity()
+{
+  switch(config)
+  {
+    case SERIAL_5N1:
+    case SERIAL_5N2:
+    case SERIAL_6N1:
+    case SERIAL_6N2:
+    case SERIAL_7N1:
+    case SERIAL_7N2:
+    case SERIAL_8N1:
+    case SERIAL_8N2:
+      return SerialParity_None;
+
+    case SERIAL_5E1:
+    case SERIAL_5E2:
+    case SERIAL_6E1:
+    case SERIAL_6E2:
+    case SERIAL_7E1:
+    case SERIAL_7E2:
+    case SERIAL_8E1:
+    case SERIAL_8E2:
+      return SerialParity_Even;
+
+    case SERIAL_5O1:
+    case SERIAL_5O2:
+    case SERIAL_6O1:
+    case SERIAL_6O2:
+    case SERIAL_7O1:
+    case SERIAL_7O2:
+    case SERIAL_8O1:
+    case SERIAL_8O2:
+      return SerialParity_Odd;
+  }
+
+  return SerialParity_MAX;
+}
+
+int SerialTask::getStopBits()
+{
+  switch(config)
+  {
+    case SERIAL_5N1:
+    case SERIAL_6N1:
+    case SERIAL_7N1:
+    case SERIAL_8N1:
+    case SERIAL_5E1:
+    case SERIAL_6E1:
+    case SERIAL_7E1:
+    case SERIAL_8E1:
+    case SERIAL_5O1:
+    case SERIAL_6O1:
+    case SERIAL_7O1:
+    case SERIAL_8O1:
+      return 1;
+
+    case SERIAL_5N2:
+    case SERIAL_6N2:
+    case SERIAL_7N2:
+    case SERIAL_8N2:
+    case SERIAL_5E2:
+    case SERIAL_6E2:
+    case SERIAL_7E2:
+    case SERIAL_8E2:
+    case SERIAL_5O2:
+    case SERIAL_6O2:
+    case SERIAL_7O2:
+    case SERIAL_8O2:
+      return 2;
+  }
+
+  return -1;
 }
 
 SerialClient::SerialClient(onReadLineCallback callback, void *clientData) :
