@@ -12,6 +12,7 @@ class ConfigClass : public MicroTasks::Event
 private:
   DynamicJsonBuffer jsonBuffer;
   JsonVariant root;
+  bool modified;
 public:
   ConfigClass();
 
@@ -21,13 +22,15 @@ public:
 
   template<typename T>
   T &get(const char *name, T &t) {
-    root[name] = t;
+    t = root[name];
     return t;
   }
 
   template<typename T>
   const T &set(const char *name, const T &t) {
-    t = root[name];
+    root[name] = t;
+    modified = true;
+    Trigger();
     return t;
   }
 };

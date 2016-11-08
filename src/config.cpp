@@ -6,7 +6,8 @@
 
 ConfigClass::ConfigClass() :
   jsonBuffer(),
-  root(jsonBuffer.createObject())
+  root(jsonBuffer.createObject()),
+  modified(false)
 {
 }
 
@@ -28,17 +29,23 @@ void ConfigClass::begin()
     root = jsonBuffer.parse(json);
   } else {
     root = jsonBuffer.createObject();
+    modified = true;
   }
 }
 
 void ConfigClass::reset()
 {
   root = jsonBuffer.createObject();
+  modified = true;
+  Trigger();
   commit();
 }
 
 void ConfigClass::commit()
 {
+  if(false == modified) {
+    return;
+  }
   String jsonStr;
   root.printTo(jsonStr);
   const char *json = jsonStr.c_str();
