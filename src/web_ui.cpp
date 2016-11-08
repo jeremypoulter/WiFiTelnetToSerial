@@ -6,10 +6,10 @@
 #include <ESP8266mDNS.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
+#include <AsyncJson.h>
 
 #include "debug.h"
 #include "web_ui.h"
-
 
 #define TEXTIFY(A) #A
 #define ESCAPEQUOTE(A) TEXTIFY(A)
@@ -41,6 +41,7 @@ void WebUiTask::setup()
   server.addHandler(&ws);
 
   server.on("/info", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncResponseStream *response = request->beginResponseStream("text/json");
     DynamicJsonBuffer jsonBuffer;
 
     JsonObject& root = jsonBuffer.createObject();
@@ -48,12 +49,12 @@ void WebUiTask::setup()
     root["heap"] = ESP.getFreeHeap();
     root["version"] = ESCAPEQUOTE(VERSION);
 
-    String response;
-    root.printTo(response);
-    request->send(200, "text/json", response);
+    root.printTo(*response);
+    request->send(response);
   });
 
   server.on("/serial", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncResponseStream *response = request->beginResponseStream("text/json");
     DynamicJsonBuffer jsonBuffer;
 
     JsonObject& root = jsonBuffer.createObject();
@@ -67,9 +68,8 @@ void WebUiTask::setup()
                      "UNKNOWN";
     root["stopBits"] = self->serial.getStopBits();
 
-    String response;
-    root.printTo(response);
-    request->send(200, "text/json", response);
+    root.printTo(*response);
+    request->send(response);
   });
 
   server.on("/serial", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -91,6 +91,7 @@ void WebUiTask::setup()
   });
 
   server.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncResponseStream *response = request->beginResponseStream("text/json");
     DynamicJsonBuffer jsonBuffer;
 
     JsonObject& root = jsonBuffer.createObject();
@@ -115,9 +116,8 @@ void WebUiTask::setup()
     root["BSSID"] = WiFi.BSSIDstr();
     root["RSSI"] = WiFi.RSSI();
 
-    String response;
-    root.printTo(response);
-    request->send(200, "text/json", response);
+    root.printTo(*response);
+    request->send(response);
   });
 
   server.on("/wifi", HTTP_POST, [](AsyncWebServerRequest *request) {
@@ -152,6 +152,7 @@ unsigned long WebUiTask::loop(MicroTasks::WakeReason reason)
     {
       DBUGF("WiFi scan complete");
 
+      AsyncResponseStream *response = WebUiTask::scanRequest->beginResponseStream("text/json");
       DynamicJsonBuffer jsonBuffer;
 
       JsonArray& root = jsonBuffer.createArray();
@@ -171,9 +172,8 @@ unsigned long WebUiTask::loop(MicroTasks::WakeReason reason)
         root.add(ssid);
       }
 
-      String response;
-      root.printTo(response);
-      WebUiTask::scanRequest->send(200, "text/json", response);
+      root.printTo(*response);
+      WebUiTask::scanRequest->send(response);
       WebUiTask::scanRequest = NULL;
     }
   }
