@@ -175,7 +175,7 @@
 
     </div><!-- /.container -->
 
-    <div class="container"  data-bind="visible: isAbout">
+    <div class="container"  data-bind="visible: isAbout, with: about">
 
       <div>
         <h1>About</h1>
@@ -188,16 +188,16 @@
         <div class="panel-body">
           <div class="row">
             <div class="col-md-2 align-right"><b>Version:</b></div>
-            <div class="col-md-10"></div>
+            <div class="col-md-10" data-bind="text: info().version"></div>
           </div>
           <div class="row">
             <div class="col-md-2 align-right"><b>Free RAM:</b></div>
-            <div class="col-md-10"></div>
+            <div class="col-md-10" data-bind="text: info().heap"></div>
           </div>
           <div class="row">
             <div class="col-md-12 align-right">
-              <button class="btn btn-info">Reboot</button>
-              <button class="btn btn-info">Factory Reset</button>
+              <button class="btn btn-info" data-bind="click: reboot">Reboot</button>
+              <button class="btn btn-info" data-bind="click: factoryReset">Factory Reset</button>
             </div>
           </div>
         </div>

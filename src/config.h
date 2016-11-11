@@ -35,4 +35,6 @@ public:
   }
 };
 
+extern ConfigClass Config; 
+
 #endif //  __CONFIG_H

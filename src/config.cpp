@@ -57,3 +57,5 @@ void ConfigClass::commit()
 
   EEPROM.commit();
 }
+
+ConfigClass Config;

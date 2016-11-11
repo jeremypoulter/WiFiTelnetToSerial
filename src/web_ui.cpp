@@ -10,6 +10,7 @@
 
 #include "debug.h"
 #include "web_ui.h"
+#include "config.h"
 
 #define TEXTIFY(A) #A
 #define ESCAPEQUOTE(A) TEXTIFY(A)
@@ -22,6 +23,7 @@ WebUiTask::WebUiTask(SerialTask &serial, WiFiManagerTask &wifi) :
   scanCompleteEvent(this),
   serial(serial),
   wifi(wifi),
+  reboot(false),
   MicroTasks::Task()
 {
   wifi.onScanComplete(scanCompleteEvent);
@@ -124,6 +126,19 @@ void WebUiTask::setup()
     request->send(200, "text/json", "{'msg':'todo'}");
   });
 
+  server.on("/settings", HTTP_DELETE, [](AsyncWebServerRequest *request) {
+    Config.reset();
+    self->reboot = true;
+    MicroTask.wakeTask(self);
+    request->send(200, "text/json", "{'msg':'done'}");
+  });
+
+  server.on("/reboot", HTTP_POST, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/json", "{'msg':'done'}");
+    self->reboot = true;
+    MicroTask.wakeTask(self);
+  });
+
   server.onNotFound(onNotFound);
 
 #ifdef DEBUG
@@ -177,6 +192,15 @@ unsigned long WebUiTask::loop(MicroTasks::WakeReason reason)
       WebUiTask::scanRequest = NULL;
     }
   }
+
+  if(reboot) {
+    if(WakeReason_Manual == reason) {
+      Serial.println("Rebooting...");
+      return 100;
+    }
+    ESP.restart();
+  }
+
   return MicroTask.Infinate;
 }
 

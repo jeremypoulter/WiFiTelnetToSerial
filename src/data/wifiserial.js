@@ -83,6 +83,28 @@ function SerialViewModel()
     };
 }
 
+function InfoViewModel()
+{
+    var self = this;
+
+    ko.mapping.fromJS({
+        'id': 0,
+        'heap': 0,
+        'version': '0.0.0'
+    }, {}, self);
+
+    self.fetching = ko.observable(false);
+
+    self.update = function () {
+        self.fetching(true);
+        $.get('/info', function (data) {
+            ko.mapping.fromJS(data, self);
+        }, 'json').always(function () {
+            self.fetching(false);
+        });
+    };
+}
+
 function SettingsViewModel(app)
 {
   var self = this;
@@ -97,6 +119,32 @@ function SettingsViewModel(app)
       }
   });
 
+}
+
+function AboutViewModel(app)
+{
+  var self = this;
+
+  self.info = ko.observable(new InfoViewModel());
+
+  self.reboot = function () {
+    $.post('/reboot', function (data) {
+      alert('ESPSerial rebooting');
+    }, 'json');
+  };
+
+  self.factoryReset = function () {
+    $.ajax({
+        url: '/settings',
+        type: 'DELETE'
+    });
+  };
+
+  app.isAbout.subscribe(function (selected) {
+      if (selected) {
+          self.info().update();
+      }
+  });
 }
 
 function WiFiTelnetToSerialViewModel()
@@ -122,6 +170,9 @@ function WiFiTelnetToSerialViewModel()
 
     // Settings
     self.settings = ko.observable(new SettingsViewModel(self));
+
+    // Aboud
+    self.about = ko.observable(new AboutViewModel(self));
 
     // Client-side routes
     var sammy = Sammy(function ()
