@@ -12,6 +12,7 @@ private:
   const char *hostName;
 public:
   EspOtaTask(const char *hostName);
+  EspOtaTask();
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);
 };

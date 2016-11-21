@@ -54,6 +54,8 @@ private:
   void stopClient();
 public:
   WiFiManagerTask(String hostname, String ssid, String password);
+  WiFiManagerTask();
+
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);
 

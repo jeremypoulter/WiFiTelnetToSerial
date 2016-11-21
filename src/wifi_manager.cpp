@@ -30,6 +30,10 @@ WiFiManagerTask::WiFiManagerTask(String hostname, String ssid, String password) 
 
 void WiFiManagerTask::setup()
 {
+  DBUGF("hostname = '%s'", hostname.c_str());
+  DBUGF("client_ssid = '%s'", client_ssid.c_str());
+  DBUGF("client_password = '%s'", client_password.c_str());
+
   pinMode(WIFI_CONNECTION_LED, OUTPUT);
   digitalWrite(WIFI_CONNECTION_LED, wifiLedState);
 

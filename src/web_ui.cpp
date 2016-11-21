@@ -44,7 +44,7 @@ void WebUiTask::setup()
 
   server.on("/info", HTTP_GET, [](AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("text/json");
-    DynamicJsonBuffer jsonBuffer;
+    StaticJsonBuffer<300> jsonBuffer;
 
     JsonObject& root = jsonBuffer.createObject();
     root["id"] = ESP.getChipId();
@@ -57,7 +57,7 @@ void WebUiTask::setup()
 
   server.on("/serial", HTTP_GET, [](AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("text/json");
-    DynamicJsonBuffer jsonBuffer;
+    StaticJsonBuffer<300> jsonBuffer;
 
     JsonObject& root = jsonBuffer.createObject();
 
@@ -72,10 +72,6 @@ void WebUiTask::setup()
 
     root.printTo(*response);
     request->send(response);
-  });
-
-  server.on("/serial", HTTP_POST, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/json", "{'msg':'todo'}");
   });
 
   server.on("/wifi/scan", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -94,7 +90,7 @@ void WebUiTask::setup()
 
   server.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("text/json");
-    DynamicJsonBuffer jsonBuffer;
+    StaticJsonBuffer<500> jsonBuffer;
 
     JsonObject& root = jsonBuffer.createObject();
 
@@ -122,8 +118,14 @@ void WebUiTask::setup()
     request->send(response);
   });
 
-  server.on("/wifi", HTTP_POST, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/json", "{'msg':'todo'}");
+  server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    Config.serialize(*response);
+    request->send(response);
+  });
+
+  server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/json", "{'msg':'done'}");
   });
 
   server.on("/settings", HTTP_DELETE, [](AsyncWebServerRequest *request) {
