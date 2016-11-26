@@ -13,6 +13,9 @@ private:
 public:
   EspOtaTask(const char *hostName);
   EspOtaTask();
+
+  void setHostName(String hostname);
+
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);
 };

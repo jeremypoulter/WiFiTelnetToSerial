@@ -5,7 +5,8 @@
 #include <MicroTasksTask.h>
 #include <MicroTasksEvent.h>
 #include <MicroTasksEventListener.h>
-#include <DNSServer.h>                // Required for captive portal
+
+#include "dns.h"                // Required for captive portal
 
 typedef void (* WiFiScanComplete)(int numberNetworks, void *pvData);
 
@@ -20,7 +21,7 @@ public:
 class WiFiManagerTask : public MicroTasks::Task
 {
 private:
-  DNSServer dnsServer;                      // Create class DNS server, captive portal re-direct
+  DnsTask dns;                      // Create class DNS server, captive portal re-direct
   WiFiScanCompleteEvent scanCompleteEvent;  //
 
   // Access Point SSID, password & IP address. SSID will be softAP_ssid + chipID to make SSID unique
@@ -55,6 +56,9 @@ private:
 public:
   WiFiManagerTask(String hostname, String ssid, String password);
   WiFiManagerTask();
+
+  void setHostName(String hostname);
+  void setClientDetails(String ssid, String password);
 
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);

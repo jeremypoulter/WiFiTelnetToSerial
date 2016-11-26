@@ -12,9 +12,6 @@
 #include "web_ui.h"
 #include "config.h"
 
-#define TEXTIFY(A) #A
-#define ESCAPEQUOTE(A) TEXTIFY(A)
-
 WebUiTask *WebUiTask::self = NULL;
 
 WebUiTask::WebUiTask(SerialTask &serial, WiFiManagerTask &wifi) :

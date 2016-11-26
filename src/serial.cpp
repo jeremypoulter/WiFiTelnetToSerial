@@ -36,6 +36,17 @@ SerialTask::SerialTask(unsigned long baud, SerialConfig config) :
 {
 }
 
+void SerialTask::setBaud(unsigned long baud) {
+  this->baud = baud;
+  Serial.begin(baud, config);
+}
+
+void SerialTask::setConfig(SerialConfig config) {
+  this->config = config;
+  Serial.begin(baud, config);
+}
+
+
 void SerialTask::setup()
 {
   //start UART and the server

@@ -32,41 +32,40 @@
 #include "wifi_manager.h"
 #include "config.h"
 
-
-const char* ssid = "wibble";
-const char* password = "TheB1gJungle2";
-
-//const char* ssid = "MRLNET";
-//const char* password = "sch1tzandra";
-
 SerialTask serial;
-EspOtaTask espOta(Config.getWifiHostname().c_str());
+EspOtaTask espOta;
+WiFiManagerTask wifi;
 TelnetTask telnet(serial);
-WiFiManagerTask wifi(Config.getWifiHostname(), ssid, password);
 WebUiTask webUi(serial, wifi);
+
+void updateConfig()
+{
+  espOta.setHostName(Config.getWifiHostname());
+
+  wifi.setHostName(Config.getWifiHostname());
+  wifi.setClientDetails(Config.getWifiClientSsid(), Config.getWifiClientPassword());
+
+  serial.setBaud(Config.getSerialBaud());
+  serial.setConfig(Config.getSerialConfig());
+}
 
 void setup() {
   DEBUG_BEGIN(115200);
+  DBUGLN("");
+  DBUGLN("");
+  DBUGF("ESPSerial %s", ESCAPEQUOTE(VERSION));
+  DBUGLN("");
+
   SPIFFS.begin();
   Config.begin();
 
-  unsigned long serialBaud;
-  int serialConfig;
-  String wifiClientSsid;
-  String wifiClientPassword;
-  String wifiHostname;
+  updateConfig();
 
-  DBUGF("serialBaud = '%d'", Config.getSerialBaud()); delay(1000);
-  DBUGF("serialConfig = '%d'", Config.getSerialConfig()); delay(1000);
-  DBUGF("wifiClientSsid = '%s'", Config.getWifiClientSsid().c_str()); delay(1000);
-  DBUGF("wifiClientPassword = '%s'", Config.getWifiClientPassword().c_str()); delay(1000);
-  DBUGF("wifiHostname = '%s'", Config.getWifiHostname().c_str()); delay(1000);
-
-  MicroTask.startTask(espOta);
   MicroTask.startTask(serial);
+  MicroTask.startTask(wifi);
+  MicroTask.startTask(espOta);
   MicroTask.startTask(webUi);
   MicroTask.startTask(telnet);
-  MicroTask.startTask(wifi);
 }
 
 void loop() {

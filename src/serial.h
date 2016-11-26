@@ -43,6 +43,9 @@ public:
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);
 
+  void setBaud(unsigned long baud);
+  void setConfig(SerialConfig config);
+
   void onReadLine(onReadLineCallback callback, void *clientData);
 
   unsigned long getBaud() {

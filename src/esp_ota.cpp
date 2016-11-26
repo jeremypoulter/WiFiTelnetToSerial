@@ -10,6 +10,17 @@ EspOtaTask::EspOtaTask(const char *hostName) :
 {
 }
 
+EspOtaTask::EspOtaTask() :
+  hostName(NULL),
+  MicroTasks::Task()
+{
+}
+
+void EspOtaTask::setHostName(String hostname) {
+  hostName = hostname.c_str();
+  ArduinoOTA.setHostname(hostName);
+}
+
 void EspOtaTask::setup()
 {
   // Port defaults to 8266
