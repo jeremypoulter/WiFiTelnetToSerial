@@ -31,9 +31,14 @@ void ConfigClass::begin()
 {
   EEPROM.begin(STORAGE_SIZE);
   char start;
-  int length;
-  EEPROM.get(0, length);
+  uint8_t a, b;
+  EEPROM.get(0, a);
+  EEPROM.get(1, b);
+  int length = a | (b << 8);
   EEPROM.get(2, start);
+
+  DBUGF("Got %d %c from EEPROM", length, start);
+
   if(2 <= length && length < STORAGE_SIZE &&
     '{' == start)
   {
@@ -71,7 +76,8 @@ void ConfigClass::commit()
   const char *json = jsonStr.c_str();
   DBUGF("Writing %s to EEPROM", json);
   int length = jsonStr.length();
-  EEPROM.put(0, length);
+  EEPROM.put(0, length & 0xff);
+  EEPROM.put(1, (length >> 8) & 0xff);
   for(int i = 0; i < length; i++) {
     EEPROM.write(2+i, json[i]);
   }
