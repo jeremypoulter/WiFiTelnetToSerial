@@ -25,11 +25,13 @@ private:
   AsyncWebServerRequest *scanRequest;
 
   bool reboot;
+  bool enableCors;
 
   static void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
   static void onNotFound(AsyncWebServerRequest *request);
 
   void onSerialReadLine(uint8_t *sbuf, size_t len, bool binary);
+  static void handleCors(AsyncResponseStream *response);
 
 public:
   WebUiTask(SerialTask &serial, WiFiManagerTask &wifi);

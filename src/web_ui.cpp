@@ -21,6 +21,7 @@ WebUiTask::WebUiTask(SerialTask &serial, WiFiManagerTask &wifi) :
   serial(serial),
   wifi(wifi),
   reboot(false),
+  enableCors(true),
   MicroTasks::Task()
 {
   wifi.onScanComplete(scanCompleteEvent);
@@ -41,8 +42,9 @@ void WebUiTask::setup()
 
   server.on("/info", HTTP_GET, [](AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("text/json");
-    StaticJsonBuffer<300> jsonBuffer;
+    handleCors(response);
 
+    StaticJsonBuffer<300> jsonBuffer;
     JsonObject& root = jsonBuffer.createObject();
     root["id"] = ESP.getChipId();
     root["heap"] = ESP.getFreeHeap();
@@ -54,8 +56,9 @@ void WebUiTask::setup()
 
   server.on("/serial", HTTP_GET, [](AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("text/json");
-    StaticJsonBuffer<300> jsonBuffer;
+    handleCors(response);
 
+    StaticJsonBuffer<300> jsonBuffer;
     JsonObject& root = jsonBuffer.createObject();
 
     root["baud"] = self->serial.getBaud();
@@ -87,8 +90,9 @@ void WebUiTask::setup()
 
   server.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("text/json");
-    StaticJsonBuffer<500> jsonBuffer;
+    handleCors(response);
 
+    StaticJsonBuffer<500> jsonBuffer;
     JsonObject& root = jsonBuffer.createObject();
 
     root["mac"] = WiFi.macAddress();
@@ -117,23 +121,35 @@ void WebUiTask::setup()
 
   server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("text/json");
+    handleCors(response);
     Config.serialize(*response);
     request->send(response);
   });
 
   server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/json", "{'msg':'done'}");
+    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    handleCors(response);
+    response->print("{'msg':'done'}");
+    request->send(response);
   });
 
   server.on("/settings", HTTP_DELETE, [](AsyncWebServerRequest *request) {
     Config.reset();
     self->reboot = true;
     MicroTask.wakeTask(self);
-    request->send(200, "text/json", "{'msg':'done'}");
+
+    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    handleCors(response);
+    response->print("{'msg':'done'}");
+    request->send(response);
   });
 
   server.on("/reboot", HTTP_POST, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/json", "{'msg':'done'}");
+    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    handleCors(response);
+    response->print("{'msg':'done'}");
+    request->send(response);
+
     self->reboot = true;
     MicroTask.wakeTask(self);
   });
@@ -167,6 +183,7 @@ unsigned long WebUiTask::loop(MicroTasks::WakeReason reason)
       DBUGF("WiFi scan complete");
 
       AsyncResponseStream *response = WebUiTask::scanRequest->beginResponseStream("text/json");
+      handleCors(response);
       DynamicJsonBuffer jsonBuffer;
 
       JsonArray& root = jsonBuffer.createArray();
@@ -331,5 +348,12 @@ void WebUiTask::onSerialReadLine(uint8_t *sbuf, size_t len, bool binary)
     ws.binaryAll(sbuf, len);
   } else {
     ws.textAll(sbuf, len);
+  }
+}
+
+void WebUiTask::handleCors(AsyncResponseStream *response)
+{
+  if(self->enableCors) {
+    response->addHeader("Access-Control-Allow-Origin", "*");
   }
 }
