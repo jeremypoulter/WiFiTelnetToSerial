@@ -1,3 +1,8 @@
+//var baseHost = window.location.hostname;
+//var baseHost = 'espserial.local';
+var baseHost = 'test.com';
+var baseEndpoint = 'http://'+baseHost;
+
 function WiFiViewModel()
 {
     var self = this;
@@ -21,7 +26,7 @@ function WiFiViewModel()
     self.update = function () {
         self.scan().update();
         self.fetching(true);
-        $.get('/wifi', function (data) {
+        $.get(baseEndpoint+'/wifi', function (data) {
             ko.mapping.fromJS(data, self);
         }, 'json').always(function () {
             self.fetching(false);
@@ -52,7 +57,7 @@ function WiFiScanViewModel()
 
     self.update = function () {
         self.fetching(true);
-        $.get('/wifi/scan', function (data) {
+        $.get(baseEndpoint+'/wifi/scan', function (data) {
             ko.mapping.fromJS(data, self.results);
         }, 'json').always(function () {
             self.fetching(false);
@@ -75,7 +80,7 @@ function SerialViewModel()
 
     self.update = function () {
         self.fetching(true);
-        $.get('/serial', function (data) {
+        $.get(baseEndpoint+'/serial', function (data) {
             ko.mapping.fromJS(data, self);
         }, 'json').always(function () {
             self.fetching(false);
@@ -97,7 +102,7 @@ function InfoViewModel()
 
     self.update = function () {
         self.fetching(true);
-        $.get('/info', function (data) {
+        $.get(baseEndpoint+'/info', function (data) {
             ko.mapping.fromJS(data, self);
         }, 'json').always(function () {
             self.fetching(false);
@@ -128,14 +133,14 @@ function AboutViewModel(app)
   self.info = ko.observable(new InfoViewModel());
 
   self.reboot = function () {
-    $.post('/reboot', function (data) {
+    $.post(baseEndpoint+'/reboot', function (data) {
       alert('ESPSerial rebooting');
     }, 'json');
   };
 
   self.factoryReset = function () {
     $.ajax({
-        url: '/settings',
+        url: baseEndpoint+'/settings',
         type: 'DELETE'
     });
   };
@@ -186,7 +191,7 @@ function WiFiTelnetToSerialViewModel()
         });
     });
 
-    var socket = new WebSocket('ws://'+window.location.hostname+'/ws');
+    var socket = new WebSocket('ws://'+baseHost+'/ws');
     socket.onopen = function (ev) {
         console.log(ev);
     };
