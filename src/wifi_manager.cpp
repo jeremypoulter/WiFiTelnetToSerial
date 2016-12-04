@@ -150,7 +150,7 @@ void WiFiManagerTask::startClient()
 
 unsigned long WiFiManagerTask::loopClient()
 {
-  DBUGF("Loop Client");
+  //DBUGF("Loop Client");
 
   if(WL_CONNECTED == WiFi.status())
   {

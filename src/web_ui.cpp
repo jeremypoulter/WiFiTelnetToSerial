@@ -41,7 +41,7 @@ void WebUiTask::setup()
   server.addHandler(&ws);
 
   server.on("/info", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
     handleCors(response);
 
     StaticJsonBuffer<300> jsonBuffer;
@@ -55,7 +55,7 @@ void WebUiTask::setup()
   });
 
   server.on("/serial", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
     handleCors(response);
 
     StaticJsonBuffer<300> jsonBuffer;
@@ -84,12 +84,12 @@ void WebUiTask::setup()
     }
     else
     {
-      request->send(400, "text/json", "{\"msg\":\"Busy\"}");
+      request->send(400, "application/json", "{\"msg\":\"Busy\"}");
     }
   });
 
   server.on("/wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
     handleCors(response);
 
     StaticJsonBuffer<500> jsonBuffer;
@@ -120,17 +120,39 @@ void WebUiTask::setup()
   });
 
   server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request) {
-    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
     handleCors(response);
     Config.serialize(*response);
     request->send(response);
   });
 
-  server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *request) {
-    AsyncResponseStream *response = request->beginResponseStream("text/json");
-    handleCors(response);
-    response->print("{'msg':'done'}");
-    request->send(response);
+  server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *request)
+  {
+    if(request->hasParam("body", true))
+    {
+      AsyncWebParameter* p = request->getParam("body", true);
+      String json = p->value();
+      if(Config.deserialize(json))
+      {
+        Config.commit();
+
+        AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{'msg':'done'}");
+        handleCors(response);
+        request->send(response);
+      }
+      else
+      {
+        AsyncWebServerResponse *response = request->beginResponse(400, "application/json", "{'msg':'Could not parse JSON'}");
+        handleCors(response);
+        request->send(response);
+      }
+    }
+    else
+    {
+      AsyncWebServerResponse *response = request->beginResponse(400, "application/json", "{'msg':'No body'}");
+      handleCors(response);
+      request->send(response);
+    }
   });
 
   server.on("/settings", HTTP_DELETE, [](AsyncWebServerRequest *request) {
@@ -138,16 +160,14 @@ void WebUiTask::setup()
     self->reboot = true;
     MicroTask.wakeTask(self);
 
-    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{'msg':'done'}");
     handleCors(response);
-    response->print("{'msg':'done'}");
     request->send(response);
   });
 
   server.on("/reboot", HTTP_POST, [](AsyncWebServerRequest *request) {
-    AsyncResponseStream *response = request->beginResponseStream("text/json");
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{'msg':'done'}");
     handleCors(response);
-    response->print("{'msg':'done'}");
     request->send(response);
 
     self->reboot = true;
@@ -156,8 +176,8 @@ void WebUiTask::setup()
 
   server.onNotFound(onNotFound);
 
-#ifdef DEBUG
-  server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+  server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+  {
     if(!index) {
       DBUGF("BodyStart: %u", total);
     }
@@ -166,7 +186,6 @@ void WebUiTask::setup()
       DBUGF("BodyEnd: %u", total);
     }
   });
-#endif
 
   server.begin();
 
@@ -182,7 +201,7 @@ unsigned long WebUiTask::loop(MicroTasks::WakeReason reason)
     {
       DBUGF("WiFi scan complete");
 
-      AsyncResponseStream *response = WebUiTask::scanRequest->beginResponseStream("text/json");
+      AsyncResponseStream *response = WebUiTask::scanRequest->beginResponseStream("application/json");
       handleCors(response);
       DynamicJsonBuffer jsonBuffer;
 
@@ -223,22 +242,23 @@ unsigned long WebUiTask::loop(MicroTasks::WakeReason reason)
 void WebUiTask::onNotFound(AsyncWebServerRequest *request)
 {
   DBUG("NOT_FOUND: ");
-  if(request->method() == HTTP_GET)
+  if(request->method() == HTTP_GET) {
     DBUGF("GET");
-  else if(request->method() == HTTP_POST)
+  } else if(request->method() == HTTP_POST) {
     DBUGF("POST");
-  else if(request->method() == HTTP_DELETE)
+  } else if(request->method() == HTTP_DELETE) {
     DBUGF("DELETE");
-  else if(request->method() == HTTP_PUT)
+  } else if(request->method() == HTTP_PUT) {
     DBUGF("PUT");
-  else if(request->method() == HTTP_PATCH)
+  } else if(request->method() == HTTP_PATCH) {
     DBUGF("PATCH");
-  else if(request->method() == HTTP_HEAD)
+  } else if(request->method() == HTTP_HEAD) {
     DBUGF("HEAD");
-  else if(request->method() == HTTP_OPTIONS)
+  } else if(request->method() == HTTP_OPTIONS) {
     DBUGF("OPTIONS");
-  else
+  } else {
     DBUGF("UNKNOWN");
+  }
   DBUGF(" http://%s%s", request->host().c_str(), request->url().c_str());
 
   if(request->contentLength()){
@@ -248,13 +268,13 @@ void WebUiTask::onNotFound(AsyncWebServerRequest *request)
 
   int headers = request->headers();
   int i;
-  for(i=0;i<headers;i++){
+  for(i=0; i<headers; i++) {
     AsyncWebHeader* h = request->getHeader(i);
     DBUGF("_HEADER[%s]: %s", h->name().c_str(), h->value().c_str());
   }
 
   int params = request->params();
-  for(i=0;i<params;i++){
+  for(i = 0; i < params; i++) {
     AsyncWebParameter* p = request->getParam(i);
     if(p->isFile()){
       DBUGF("_FILE[%s]: %s, size: %u", p->name().c_str(), p->value().c_str(), p->size());
@@ -351,7 +371,7 @@ void WebUiTask::onSerialReadLine(uint8_t *sbuf, size_t len, bool binary)
   }
 }
 
-void WebUiTask::handleCors(AsyncResponseStream *response)
+void WebUiTask::handleCors(AsyncWebServerResponse *response)
 {
   if(self->enableCors) {
     response->addHeader("Access-Control-Allow-Origin", "*");

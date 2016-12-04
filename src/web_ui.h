@@ -31,7 +31,7 @@ private:
   static void onNotFound(AsyncWebServerRequest *request);
 
   void onSerialReadLine(uint8_t *sbuf, size_t len, bool binary);
-  static void handleCors(AsyncResponseStream *response);
+  static void handleCors(AsyncWebServerResponse *response);
 
 public:
   WebUiTask(SerialTask &serial, WiFiManagerTask &wifi);

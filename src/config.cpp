@@ -142,16 +142,26 @@ bool ConfigClass::serialize(JsonObject& root, bool longNames)
 #undef SET_VALUE
 
 #define GET_VALUE(val) do { \
-  if(root.containsKey(val ## _LONG_NAME)) { \
+  if(root.containsKey(val ## _LONG_NAME) && val != root[val ## _LONG_NAME]) { \
     val = root[val ## _LONG_NAME]; \
-  } else if(root.containsKey(val ## _SHORT_NAME)) { \
+    modified = true; \
+  } else if(root.containsKey(val ## _SHORT_NAME) && val != root[val ## _SHORT_NAME]) { \
     val = root[val ## _SHORT_NAME]; \
+    modified = true; \
   }} while(false)
 #define GET_VALUE_AS_STRING(val) do { \
   if(root.containsKey(val ## _LONG_NAME)) { \
-    val = root[val ## _LONG_NAME].asString(); \
+    String newVal = root[val ## _LONG_NAME].asString(); \
+    if(newVal != val) { \
+      val =  newVal; \
+      modified = true; \
+    } \
   } else if(root.containsKey(val ## _SHORT_NAME)) { \
-    val = root[val ## _SHORT_NAME].asString(); \
+    String newVal = root[val ## _SHORT_NAME].asString(); \
+    if(newVal != val) { \
+      val =  newVal; \
+      modified = true; \
+    } \
   }} while(false)
 
 bool ConfigClass::deserialize(JsonObject& root)
