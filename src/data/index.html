@@ -67,7 +67,7 @@
                         </tr>
                       </thead>
                       <tbody data-bind="foreach: wifi().scan().results()">
-                        <tr>
+                        <tr data-bind="click: $root.settings().setSsid(ssid)">
                           <td data-bind="text: ssid"></td>
                           <td data-bind="text: rssi"></td>
                         </tr>
@@ -99,20 +99,20 @@
               </div>
             </div>
 
-            <form class="form-horizontal">
+            <form class="form-horizontal" data-bind="with: config">
               <div class="form-group">
                 <label for="clientSsid" class="col-sm-2 control-label">SSID</label>
                 <div class="col-sm-10">
-                  <input type="text" class="form-control" id="clientSsid" placeholder="SSID">
+                  <input type="text" class="form-control" id="clientSsid" placeholder="SSID" data-bind="value: wifiClientSsid()">
                 </div>
               </div>
               <div class="form-group">
                 <label for="clientPassword" class="col-sm-2 control-label">Password</label>
                 <div class="col-sm-10">
-                  <input type="password" class="form-control" id="clientPassword" placeholder="Password">
+                  <input type="password" class="form-control" id="clientPassword" placeholder="Password" data-bind="value: wifiClientPassword()">
                 </div>
               </div>
-              <button type="submit" class="btn btn-default">Connect</button>
+              <button type="submit" class="btn btn-default" data-bind="click: save">Connect</button>
             </form>
           </div>
         </div>

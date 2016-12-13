@@ -128,6 +128,19 @@ void WebUiTask::setup()
 
   server.on("/settings", HTTP_POST, [](AsyncWebServerRequest *request)
   {
+    int params = request->params();
+    DBUGF("Save settings, %d params", params);
+    for(int i = 0; i < params; i++) {
+      AsyncWebParameter* p = request->getParam(i);
+      if(p->isFile()){
+        DBUGF("_FILE[%s]: %s, size: %u", p->name().c_str(), p->value().c_str(), p->size());
+      } else if(p->isPost()){
+        DBUGF("_POST[%s]: %s", p->name().c_str(), p->value().c_str());
+      } else {
+        DBUGF("_GET[%s]: %s", p->name().c_str(), p->value().c_str());
+      }
+    }
+
     if(request->hasParam("body", true))
     {
       AsyncWebParameter* p = request->getParam("body", true);

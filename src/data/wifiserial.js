@@ -1,6 +1,6 @@
-//var baseHost = window.location.hostname;
+var baseHost = window.location.hostname;
 //var baseHost = 'espserial.local';
-var baseHost = 'test.com';
+//var baseHost = 'test.com';
 var baseEndpoint = 'http://'+baseHost;
 
 function WiFiViewModel()
@@ -110,20 +110,64 @@ function InfoViewModel()
     };
 }
 
+function ConfigViewModel()
+{
+    var self = this;
+
+    ko.mapping.fromJS({
+        'serialBaud': 0,
+        'serialConfig': 0,
+        'wifiClientSsid': '',
+        'wifiClientPassword': '',
+        'wifiHostname': 'espserial'
+    }, {}, self);
+
+    self.fetching = ko.observable(false);
+
+    self.update = function () {
+        self.fetching(true);
+        $.get(baseEndpoint+'/settings', function (data) {
+            ko.mapping.fromJS(data, self);
+        }, 'json').always(function () {
+            self.fetching(false);
+        });
+    };
+
+    self.save = function() {
+        self.fetching(true);
+        $.post(baseEndpoint+'/settings', JSON.stringify({
+            'serialBaud': self.serialBaud(),
+            'serialConfig': self.serialConfig(),
+            'wifiClientSsid': self.wifiClientSsid(),
+            'wifiClientPassword': self.wifiClientPassword(),
+            'wifiHostname': self.wifiHostname()
+        }), function (data) {
+        }, 'json').always(function () {
+            self.fetching(false);
+        });
+    };
+}
+
 function SettingsViewModel(app)
 {
   var self = this;
 
   self.wifi = ko.observable(new WiFiViewModel());
   self.serial = ko.observable(new SerialViewModel());
+  self.config = ko.observable(new ConfigViewModel());
 
   app.isSettings.subscribe(function (selected) {
       if (selected) {
           self.wifi().update();
           self.serial().update();
+          self.config().update();
       }
   });
 
+  self.setSsid = function (ssid) {
+      self.config().wifiClientSsid(ssid);
+      self.config().wifiClientPassword('');
+  };
 }
 
 function AboutViewModel(app)
