@@ -164,8 +164,8 @@ function SettingsViewModel(app)
       }
   });
 
-  self.setSsid = function (ssid) {
-      self.config().wifiClientSsid(ssid);
+  self.setSsid = function (item) {
+      self.config().wifiClientSsid(item.ssid());
       self.config().wifiClientPassword('');
   };
 }
