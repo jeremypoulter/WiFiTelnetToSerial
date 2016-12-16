@@ -74,6 +74,62 @@ void WebUiTask::setup()
     request->send(response);
   });
 
+  server.on("/serial", HTTP_POST, [](AsyncWebServerRequest *request)
+  {
+    int params = request->params();
+    DBUGF("Set serial, %d params", params);
+    for(int i = 0; i < params; i++) {
+      AsyncWebParameter* p = request->getParam(i);
+      if(p->isFile()){
+        DBUGF("_FILE[%s]: %s, size: %u", p->name().c_str(), p->value().c_str(), p->size());
+      } else if(p->isPost()){
+        DBUGF("_POST[%s]: %s", p->name().c_str(), p->value().c_str());
+      } else {
+        DBUGF("_GET[%s]: %s", p->name().c_str(), p->value().c_str());
+      }
+    }
+
+    if(request->hasParam("body", true))
+    {
+      AsyncWebParameter* p = request->getParam("body", true);
+      String json = p->value();
+      DynamicJsonBuffer buffer;
+      JsonObject& root = buffer.parseObject(json);
+
+      if(root.success())
+      {
+        String parityStr = root["parity"];
+        char parity = parityStr[0];
+
+        Config.setSerialBaud(root["baud"]);
+        Config.setSerialConfig(self->serial.makeConfig(
+                                root["dataBits"],
+                                parity == 'N' ? SerialParity_None :
+                                parity == 'O' ? SerialParity_Odd :
+                                                SerialParity_Even,
+                                root["stopBits"]));
+        Config.commit();
+
+        AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{'msg':'done'}");
+        handleCors(response);
+        request->send(response);
+      }
+      else
+      {
+        AsyncWebServerResponse *response = request->beginResponse(400, "application/json", "{'msg':'Could not parse JSON'}");
+        handleCors(response);
+        request->send(response);
+      }
+    }
+    else
+    {
+      AsyncWebServerResponse *response = request->beginResponse(400, "application/json", "{'msg':'No body'}");
+      handleCors(response);
+      request->send(response);
+    }
+  });
+
+
   server.on("/wifi/scan", HTTP_GET, [](AsyncWebServerRequest *request)
   {
     if(NULL == self->scanRequest)

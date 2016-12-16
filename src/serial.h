@@ -43,8 +43,12 @@ public:
   void setup();
   unsigned long loop(MicroTasks::WakeReason reason);
 
-  void setBaud(unsigned long baud);
+  void setBaud(unsigned long baud); 
   void setConfig(SerialConfig config);
+  void setConfig(int dataBits, SerialParity parity, int stopBits) {
+    setConfig(makeConfig(dataBits, parity, stopBits));
+  }
+  SerialConfig makeConfig(int dataBits, SerialParity parity, int stopBits);
 
   void onReadLine(onReadLineCallback callback, void *clientData);
 
@@ -55,6 +59,10 @@ public:
   int getDataBits();
   SerialParity getParity();
   int getStopBits();
+
+  SerialConfig getConfig() {
+    return config; 
+  }
 };
 
 class SerialClient

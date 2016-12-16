@@ -1,5 +1,5 @@
-var baseHost = window.location.hostname;
-//var baseHost = 'espserial.local';
+//var baseHost = window.location.hostname;
+var baseHost = 'espserial.local';
 //var baseHost = 'test.com';
 var baseEndpoint = 'http://'+baseHost;
 
@@ -86,6 +86,19 @@ function SerialViewModel()
             self.fetching(false);
         });
     };
+
+    self.set = function () {
+        self.fetching(true);
+        $.post(baseEndpoint+'/serial', JSON.stringify({
+            'baud': self.baud(),
+            'dataBits': self.dataBits(),
+            'parity': self.parity(),
+            'stopBits': self.stopBits()
+        }), function (data) {
+        }, 'json').always(function () {
+            self.fetching(false);
+        });
+    }
 }
 
 function InfoViewModel()

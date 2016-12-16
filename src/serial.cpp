@@ -157,6 +157,7 @@ int SerialTask::getDataBits()
   return -1;
 }
 
+
 SerialParity SerialTask::getParity()
 {
   switch(config)
@@ -230,6 +231,120 @@ int SerialTask::getStopBits()
 
   return -1;
 }
+
+SerialConfig SerialTask::makeConfig(int dataBits, SerialParity parity, int stopBits)
+{
+  switch(dataBits)
+  {
+    case 5:
+      switch(parity)
+      {
+        case SerialParity_Even:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_5E1;
+            case 2: return SERIAL_5E2;
+          }
+          break;
+        case SerialParity_Odd:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_5O1;
+            case 2: return SERIAL_5O2;
+          }
+          break;
+        case SerialParity_None:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_5N1;
+            case 2: return SERIAL_5N2;
+          }
+          break;
+      }
+      break;
+    case 6:
+      switch(parity)
+      {
+        case SerialParity_Even:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_6E1;
+            case 2: return SERIAL_6E2;
+          }
+          break;
+        case SerialParity_Odd:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_6O1;
+            case 2: return SERIAL_6O2;
+          }
+          break;
+        case SerialParity_None:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_6N1;
+            case 2: return SERIAL_6N2;
+          }
+          break;
+      }
+      break;
+    case 7:
+      switch(parity)
+      {
+        case SerialParity_Even:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_7E1;
+            case 2: return SERIAL_7E2;
+          }
+          break;
+        case SerialParity_Odd:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_7O1;
+            case 2: return SERIAL_7O2;
+          }
+          break;
+        case SerialParity_None:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_7N1;
+            case 2: return SERIAL_7N2;
+          }
+          break;
+      }
+      break;
+    case 8:
+      switch(parity)
+      {
+        case SerialParity_Even:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_8E1;
+            case 2: return SERIAL_8E2;
+          }
+          break;
+        case SerialParity_Odd:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_8O1;
+            case 2: return SERIAL_8O2;
+          }
+          break;
+        case SerialParity_None:
+          switch(stopBits)
+          {
+            case 1: return SERIAL_8N1;
+            case 2: return SERIAL_8N2;
+          }
+          break;
+      }
+      break;
+  }
+
+  return config;
+}
+
 
 SerialClient::SerialClient(onReadLineCallback callback, void *clientData) :
   fnReadLineCallback(callback),

@@ -38,16 +38,47 @@ WiFiManagerTask wifi;
 TelnetTask telnet(serial);
 WebUiTask webUi(serial, wifi);
 
-void updateConfig()
+class ConfigManagerTask : public MicroTasks::Task
 {
-  espOta.setHostName(Config.getWifiHostname());
+private:
+  MicroTasks::EventListener configChangedEvent;
 
-  wifi.setHostName(Config.getWifiHostname());
-  wifi.setClientDetails(Config.getWifiClientSsid(), Config.getWifiClientPassword());
+public:
+  ConfigManagerTask() :
+    configChangedEvent(this),
+    MicroTasks::Task()
+  {
 
-  serial.setBaud(Config.getSerialBaud());
-  serial.setConfig(Config.getSerialConfig());
-}
+  }
+
+  void setup()
+  {
+    updateConfig();
+    Config.Register(&configChangedEvent);
+  }
+
+  unsigned long loop(MicroTasks::WakeReason reason)
+  {
+    if(WakeReason_Event == reason) {
+      updateConfig();
+    }
+
+    return MicroTask.WaitForEvent;
+  }
+
+protected:
+  void updateConfig()
+  {
+    DBUGF("Update config");
+    espOta.setHostName(Config.getWifiHostname());
+
+    wifi.setHostName(Config.getWifiHostname());
+    wifi.setClientDetails(Config.getWifiClientSsid(), Config.getWifiClientPassword());
+
+    serial.setBaud(Config.getSerialBaud());
+    serial.setConfig(Config.getSerialConfig());
+  }
+} configManager;
 
 void setup() {
   DEBUG_BEGIN(115200);
@@ -59,8 +90,7 @@ void setup() {
   SPIFFS.begin();
   Config.begin();
 
-  updateConfig();
-
+  MicroTask.startTask(configManager);
   MicroTask.startTask(serial);
   MicroTask.startTask(wifi);
   MicroTask.startTask(espOta);
