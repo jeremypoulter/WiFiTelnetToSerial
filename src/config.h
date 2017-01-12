@@ -26,6 +26,12 @@ private:
     modified = true;
     Trigger();
   }
+
+  bool set_serialBaud(uint32_t value);
+  bool set_serialConfig(SerialConfig value);
+  bool set_wifiClientSsid(String value);
+  bool set_wifiClientPassword(String value);
+  bool set_wifiHostname(String value);
 public:
   ConfigClass();
 
@@ -63,43 +69,36 @@ public:
     return serialBaud;
   }
   bool setSerialBaud(uint32_t value) {
-    serialBaud = value;
-    setModified();
+    set_serialBaud(value);
   }
 
   SerialConfig getSerialConfig() {
     return (SerialConfig)serialConfig;
   }
   bool setSerialConfig(SerialConfig value) {
-    serialConfig = value;
-    setModified();
+    set_serialConfig(value);
   }
 
   String getWifiClientSsid() {
     return wifiClientSsid;
   }
   bool setWifiClientSsid(String value) {
-    wifiClientSsid = value;
-    setModified();
+    set_wifiClientSsid(value);
   }
 
   String getWifiClientPassword() {
     return wifiClientPassword;
   }
   bool setWifiClientPassword(String value) {
-    wifiClientPassword = value;
-    setModified();
+    set_wifiClientPassword(value);
   }
 
   String getWifiHostname() {
     return wifiHostname;
   }
   bool setWifiHostname(String value) {
-    wifiHostname = value;
-    setModified();
+    set_wifiHostname(value);
   }
-
-
 };
 
 extern ConfigClass Config;

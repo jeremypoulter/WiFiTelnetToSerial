@@ -142,9 +142,8 @@ bool ConfigClass::serialize(JsonObject& root, bool longNames)
 #undef SET_VALUE
 
 #define GET_VALUE(val) do { \
-  if(root.containsKey(val ## _LONG_NAME) && val != root[val ## _LONG_NAME]) { \
-    val = root[val ## _LONG_NAME]; \
-    modified = true; \
+  if(root.containsKey(val ## _LONG_NAME)) { \
+    set_ ## val(root[val ## _LONG_NAME]); \
   } else if(root.containsKey(val ## _SHORT_NAME) && val != root[val ## _SHORT_NAME]) { \
     val = root[val ## _SHORT_NAME]; \
     modified = true; \
@@ -181,5 +180,38 @@ bool ConfigClass::deserialize(JsonObject& root)
 }
 
 #undef GET_VALUE
+#undef GET_VALUE_AS_STRING
+
+#define SET_VALUE(val) do { \
+  if(root.containsKey(val ## _LONG_NAME) && val != root[val ## _LONG_NAME]) { \
+    val = root[val ## _LONG_NAME]; \
+    modified = true; \
+  } else if(root.containsKey(val ## _SHORT_NAME) && val != root[val ## _SHORT_NAME]) { \
+    val = root[val ## _SHORT_NAME]; \
+    modified = true; \
+  }} while(false)
+#define SET_VALUE_AS_STRING(val) do { \
+  if(root.containsKey(val ## _LONG_NAME)) { \
+    String newVal = root[val ## _LONG_NAME].asString(); \
+    if(newVal != val) { \
+      val =  newVal; \
+      modified = true; \
+    } \
+  } else if(root.containsKey(val ## _SHORT_NAME)) { \
+    String newVal = root[val ## _SHORT_NAME].asString(); \
+    if(newVal != val) { \
+      val =  newVal; \
+      modified = true; \
+    } \
+  }} while(false)
+
+SET_VALUE(serialBaud);
+SET_VALUE(serialConfig);
+SET_VALUE_AS_STRING(wifiClientPassword);
+SET_VALUE_AS_STRING(wifiClientSsid);
+SET_VALUE_AS_STRING(wifiHostname);
+
+#undef SET_VALUE
+#undef SET_VALUE_AS_STRING
 
 ConfigClass Config;
