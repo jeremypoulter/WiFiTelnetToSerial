@@ -27,8 +27,8 @@ private:
     Trigger();
   }
 
-  bool set_serialBaud(uint32_t value);
-  bool set_serialConfig(SerialConfig value);
+  bool set_serialBaud(unsigned long value);
+  bool set_serialConfig(int value);
   bool set_wifiClientSsid(String value);
   bool set_wifiClientPassword(String value);
   bool set_wifiHostname(String value);

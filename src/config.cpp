@@ -49,6 +49,7 @@ void ConfigClass::begin()
     json[length] = '\0';
     DBUGF("Found stored JSON %s", json);
     deserialize(json);
+    modified = false;
   } else {
     DBUGF("No existing config found, writing factory settings");
     reset();
@@ -86,6 +87,8 @@ void ConfigClass::commit()
 
   EEPROM.commit();
   DBUGF("Done");
+
+  modified = false;
 }
 
 void ConfigClass::setDefaults()
@@ -144,23 +147,14 @@ bool ConfigClass::serialize(JsonObject& root, bool longNames)
 #define GET_VALUE(val) do { \
   if(root.containsKey(val ## _LONG_NAME)) { \
     set_ ## val(root[val ## _LONG_NAME]); \
-  } else if(root.containsKey(val ## _SHORT_NAME) && val != root[val ## _SHORT_NAME]) { \
-    val = root[val ## _SHORT_NAME]; \
-    modified = true; \
+  } else if(root.containsKey(val ## _SHORT_NAME)) { \
+    set_ ## val(root[val ## _SHORT_NAME]); \
   }} while(false)
 #define GET_VALUE_AS_STRING(val) do { \
   if(root.containsKey(val ## _LONG_NAME)) { \
-    String newVal = root[val ## _LONG_NAME].asString(); \
-    if(newVal != val) { \
-      val =  newVal; \
-      modified = true; \
-    } \
+    set_ ## val(root[val ## _LONG_NAME].asString()); \
   } else if(root.containsKey(val ## _SHORT_NAME)) { \
-    String newVal = root[val ## _SHORT_NAME].asString(); \
-    if(newVal != val) { \
-      val =  newVal; \
-      modified = true; \
-    } \
+    set_ ## val(root[val ## _SHORT_NAME].asString()); \
   }} while(false)
 
 bool ConfigClass::deserialize(JsonObject& root)
@@ -182,36 +176,26 @@ bool ConfigClass::deserialize(JsonObject& root)
 #undef GET_VALUE
 #undef GET_VALUE_AS_STRING
 
-#define SET_VALUE(val) do { \
-  if(root.containsKey(val ## _LONG_NAME) && val != root[val ## _LONG_NAME]) { \
-    val = root[val ## _LONG_NAME]; \
-    modified = true; \
-  } else if(root.containsKey(val ## _SHORT_NAME) && val != root[val ## _SHORT_NAME]) { \
-    val = root[val ## _SHORT_NAME]; \
-    modified = true; \
-  }} while(false)
-#define SET_VALUE_AS_STRING(val) do { \
-  if(root.containsKey(val ## _LONG_NAME)) { \
-    String newVal = root[val ## _LONG_NAME].asString(); \
-    if(newVal != val) { \
-      val =  newVal; \
-      modified = true; \
-    } \
-  } else if(root.containsKey(val ## _SHORT_NAME)) { \
-    String newVal = root[val ## _SHORT_NAME].asString(); \
-    if(newVal != val) { \
-      val =  newVal; \
-      modified = true; \
-    } \
-  }} while(false)
+#define SET_VALUE(type, val) \
+bool ConfigClass::set_ ## val (type value) \
+{ \
+  DBUG(val ## _LONG_NAME ": "); \
+  DBUG(val); \
+  DBUG(" != "); \
+  DBUGLN(value); \
+  if(val != value) { \
+    DBUGLN("Value changed!"); \
+    val = value; \
+    setModified(); \
+  } \
+}
 
-SET_VALUE(serialBaud);
-SET_VALUE(serialConfig);
-SET_VALUE_AS_STRING(wifiClientPassword);
-SET_VALUE_AS_STRING(wifiClientSsid);
-SET_VALUE_AS_STRING(wifiHostname);
+SET_VALUE(unsigned long, serialBaud);
+SET_VALUE(int, serialConfig);
+SET_VALUE(String, wifiClientPassword);
+SET_VALUE(String, wifiClientSsid);
+SET_VALUE(String, wifiHostname);
 
 #undef SET_VALUE
-#undef SET_VALUE_AS_STRING
 
 ConfigClass Config;
